@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://merchant.atomandbits.com/schema/merchant-context-v0.1.json",
+  "title": "Merchant Context",
+  "description": "An experimental, vendor-neutral context record for merchant facts, offers, policies, actions, and provenance.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "merchant", "offers", "policies", "actions", "provenance"],
+  "properties": {
+    "version": {
+      "const": "0.1"
+    },
+    "merchant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "canonical_url"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "canonical_url": {"type": "string", "format": "uri", "pattern": "^https://"},
+        "legal_name": {"type": "string"},
+        "support_url": {"type": "string", "format": "uri"}
+      }
+    },
+    "offers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/offer"}
+    },
+    "policies": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/sourceLink"}
+    },
+    "actions": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/action"}
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["generated_at", "source_urls"],
+      "properties": {
+        "generated_at": {"type": "string", "format": "date-time"},
+        "source_urls": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "format": "uri"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sourceLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "url"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "url": {"type": "string", "format": "uri", "pattern": "^https://"}
+      }
+    },
+    "price": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["amount", "currency"],
+      "properties": {
+        "amount": {"type": "number", "minimum": 0},
+        "currency": {"type": "string", "pattern": "^[A-Z]{3}$"},
+        "billing_period": {"enum": ["one_time", "day", "week", "month", "year"]},
+        "tax_included": {"type": "boolean"}
+      }
+    },
+    "offer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "description", "canonical_url", "availability", "updated_at"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "name": {"type": "string", "minLength": 1},
+        "description": {"type": "string", "minLength": 1},
+        "canonical_url": {"type": "string", "format": "uri", "pattern": "^https://"},
+        "audience": {"type": "string"},
+        "price": {"$ref": "#/$defs/price"},
+        "availability": {"enum": ["available", "limited", "unavailable", "contact_merchant"]},
+        "limits": {"type": "array", "items": {"type": "string"}},
+        "updated_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "method", "url", "human_confirmation_required"],
+      "properties": {
+        "name": {"enum": ["learn_more", "contact", "request_quote", "book", "checkout"]},
+        "method": {"enum": ["GET", "POST"]},
+        "url": {"type": "string", "format": "uri", "pattern": "^https://"},
+        "human_confirmation_required": {"type": "boolean"},
+        "protocol": {"type": "string"}
+      }
+    }
+  }
+}

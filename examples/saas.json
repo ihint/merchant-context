@@ -1,0 +1,48 @@
+{
+  "$schema": "../schema/merchant-context.schema.json",
+  "version": "0.1",
+  "merchant": {
+    "name": "Example Software",
+    "canonical_url": "https://example.com",
+    "legal_name": "Example Software LLC",
+    "support_url": "https://example.com/support"
+  },
+  "offers": [
+    {
+      "id": "pro-monthly",
+      "name": "Pro",
+      "description": "A monthly software plan for one team.",
+      "canonical_url": "https://example.com/pricing#pro",
+      "audience": "Small teams that need shared access.",
+      "price": {
+        "amount": 49,
+        "currency": "USD",
+        "billing_period": "month",
+        "tax_included": false
+      },
+      "availability": "available",
+      "limits": ["One workspace", "Up to five users"],
+      "updated_at": "2026-08-03T20:00:00Z"
+    }
+  ],
+  "policies": [
+    {"name": "Terms", "url": "https://example.com/terms"},
+    {"name": "Privacy", "url": "https://example.com/privacy"},
+    {"name": "Cancellation", "url": "https://example.com/cancellation"}
+  ],
+  "actions": [
+    {
+      "name": "checkout",
+      "method": "GET",
+      "url": "https://example.com/checkout/pro-monthly",
+      "human_confirmation_required": true
+    }
+  ],
+  "provenance": {
+    "generated_at": "2026-08-03T20:00:00Z",
+    "source_urls": [
+      "https://example.com/pricing",
+      "https://example.com/terms"
+    ]
+  }
+}
