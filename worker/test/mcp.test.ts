@@ -1,6 +1,6 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   buildPaymentObservation,
@@ -13,6 +13,7 @@ describe("merchant context MCP server", () => {
 
   afterEach(async () => {
     await Promise.all(closeCallbacks.splice(0).map((close) => close()));
+    vi.unstubAllGlobals();
   });
 
   it("advertises a free service record and a priced inspection tool", async () => {
@@ -59,6 +60,68 @@ describe("merchant context MCP server", () => {
         X402_NETWORK: "ethereum",
       }),
     ).toThrow("X402_NETWORK must be base or base-sepolia");
+  });
+
+  it("returns x402 payment terms before running the paid tool", async () => {
+    const facilitatorFetch = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          kinds: [
+            {
+              x402Version: 2,
+              scheme: "exact",
+              network: "eip155:84532",
+              extra: {},
+            },
+          ],
+          extensions: [],
+          signers: {},
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+    );
+    vi.stubGlobal("fetch", facilitatorFetch);
+    const server = createMerchantContextServer({
+      network: "base-sepolia",
+      recipient: "0x0000000000000000000000000000000000000001",
+    });
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    const [clientTransport, serverTransport] =
+      InMemoryTransport.createLinkedPair();
+
+    await Promise.all([
+      server.connect(serverTransport),
+      client.connect(clientTransport),
+    ]);
+    closeCallbacks.push(
+      () => client.close(),
+      () => server.close(),
+    );
+
+    const result = await client.callTool({
+      name: "inspect_merchant",
+      arguments: {
+        merchant_url: "https://merchant.example",
+        agent_id: "agent/test/1",
+      },
+    });
+
+    expect(result.isError).toBe(true);
+    expect(result._meta?.["x402/error"]).toMatchObject({
+      x402Version: 2,
+      error: "PAYMENT_REQUIRED",
+      accepts: [
+        {
+          network: "eip155:84532",
+          amount: "10000",
+          payTo: "0x0000000000000000000000000000000000000001",
+        },
+      ],
+    });
+    expect(facilitatorFetch).toHaveBeenCalledWith(
+      "https://x402.org/facilitator/supported",
+      expect.objectContaining({ method: "GET" }),
+    );
   });
 
   it("reduces a verified payment to non-secret usage identifiers", async () => {
