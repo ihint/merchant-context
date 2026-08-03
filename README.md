@@ -36,6 +36,31 @@ The goal is to give merchants one testable context layer that can map to those s
 - A purchase or other high-impact action should state when human approval is required.
 - Existing standards win. Map to them instead of inventing a private dialect.
 
+## Agent service
+
+The [`worker`](worker) directory contains the hosted MCP service under test. It exposes:
+
+- `get_service_info`, a free tool that states the checks, price, payment network, and source;
+- `inspect_merchant`, a $0.01 x402 tool that checks six fixed public discovery paths; and
+- `/.well-known/merchant-context`, a public service record for agents and registries.
+
+The inspector accepts public HTTPS origins only. It blocks local and IP targets, checks each
+redirect, caps response size and time, and returns no page body. The payment path records hashes,
+not wallet addresses or signed payment tokens.
+
+We will list the production endpoint here after payment settlement, usage storage, and a live paid
+call pass their checks.
+
+Run its local checks:
+
+```sh
+cd worker
+npm install
+npm test
+npm run typecheck
+npx wrangler deploy --dry-run
+```
+
 ## Contributing
 
 Issues, examples, and corrections are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.

@@ -1,0 +1,38 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "merchant-context-mcp",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-03",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "vars": {
+    "X402_NETWORK": "base"
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "MerchantContextMcp",
+        "class_name": "MerchantContextMcp"
+      }
+    ]
+  },
+  "ratelimits": [
+    {
+      "name": "RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": {
+        "limit": 60,
+        "period": 60
+      }
+    }
+  ],
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["MerchantContextMcp"]
+    }
+  ],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  }
+}
