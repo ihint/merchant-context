@@ -28,6 +28,11 @@ describe("public HTTP surface", () => {
         payment: "x402",
         network: "base",
       },
+      ucp: {
+        profile_url: "https://merchant.atomandbits.com/.well-known/ucp",
+        version: "2026-04-08",
+        capabilities: [],
+      },
       tools: [
         { name: "get_service_info", price_usd: 0, payment: "none" },
         { name: "inspect_merchant", price_usd: 0.01, payment: "x402" },

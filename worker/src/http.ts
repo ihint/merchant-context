@@ -34,6 +34,11 @@ export function handlePublicRequest(request: Request): Response | null {
           payment: "x402",
           network: "base",
         },
+        ucp: {
+          profile_url: "https://merchant.atomandbits.com/.well-known/ucp",
+          version: "2026-04-08",
+          capabilities: [],
+        },
         tools: [
           {
             name: "get_service_info",

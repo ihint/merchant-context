@@ -17,6 +17,7 @@ This repo contains:
 
 - Product and machine brief: https://merchant.atomandbits.com/llms.txt
 - Version 0.1 schema: https://merchant.atomandbits.com/schema/merchant-context-v0.1.json
+- UCP discovery: https://merchant.atomandbits.com/.well-known/ucp
 - Open source and history: https://github.com/ihint/merchant-context
 
 The domain schema and [`schema/merchant-context.schema.json`](schema/merchant-context.schema.json)
@@ -25,6 +26,8 @@ must stay semantically equal. Versioned releases preserve old contracts.
 ## Status
 
 This is an early public draft from [Atom & Bits](https://atomandbits.com). It is not a new payment or checkout protocol. It does not certify ACP, UCP, MCP, A2A, x402, or Web Bot Auth support.
+
+The UCP profile declares no services, checkout capabilities, or payment handlers. It gives agents an explicit discovery response without claiming operations that do not exist.
 
 The goal is to give merchants one testable context layer that can map to those systems as they mature.
 
