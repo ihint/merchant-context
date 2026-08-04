@@ -49,4 +49,19 @@ The service fails closed until all of these exist:
 
 The x402 facilitator verifies payment signatures, prevents authorization replay, settles USDC, and
 returns the transaction receipt. The tool records a hashed verified-payment row before it returns a
-successful result; if that write fails, settlement does not run.
+successful result; if that write fails, settlement does not run. After settlement, the Worker reads
+the receipt from the MCP result and records the public transaction hash. It does not count a verified
+signature as revenue.
+
+## Report settled use
+
+Run the aggregate report against the production D1 database:
+
+```sh
+npx wrangler d1 execute merchant-context-usage --remote \
+  --file scripts/settled-revenue-report.sql
+```
+
+The report counts Base mainnet settlements only. `distinct_agent_payer_pairs` is the working paid
+agent measure. `distinct_payers` shows how many payer wallets those agents used. Agent IDs are
+self-declared, so publish both counts with the on-chain transaction evidence.

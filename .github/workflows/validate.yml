@@ -17,6 +17,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: python3 scripts/validate.py
+      - run: python3 worker/scripts/validate_metrics.py
 
   worker:
     runs-on: ubuntu-latest

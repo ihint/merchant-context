@@ -7,7 +7,8 @@ import {
   registerMerchantContextTools,
   type PaymentEnv,
 } from "./mcp";
-import { recordVerifiedPayment } from "./metrics";
+import { recordSettlement, recordVerifiedPayment } from "./metrics";
+import { capturePaymentToken, settlementFromResponse } from "./settlement";
 
 export interface Env extends PaymentEnv {
   MerchantContextMcp: DurableObjectNamespace<MerchantContextMcp>;
@@ -74,7 +75,24 @@ export default {
         });
       }
 
-      return mcpHandler.fetch(request, env, context);
+      const paymentToken = capturePaymentToken(request);
+      const response = await mcpHandler.fetch(request, env, context);
+      const settlementResponse = response.clone();
+
+      context.waitUntil(
+        paymentToken
+          .then((token) => settlementFromResponse(token, settlementResponse))
+          .then((settlement) => {
+            if (settlement !== null) {
+              return recordSettlement(env.USAGE_DB!, settlement);
+            }
+          })
+          .catch(() => {
+            console.error("Settlement receipt could not be recorded");
+          }),
+      );
+
+      return response;
     }
 
     return new Response("Not found", {
