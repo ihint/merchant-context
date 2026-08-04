@@ -2,6 +2,12 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "merchant-context-mcp",
   "main": "src/index.ts",
+  "routes": [
+    {
+      "pattern": "api.merchant.atomandbits.com",
+      "custom_domain": true
+    }
+  ],
   "compatibility_date": "2026-08-03",
   "compatibility_flags": [
     "nodejs_compat",
