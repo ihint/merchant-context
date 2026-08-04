@@ -38,16 +38,71 @@ describe("merchant context MCP server", () => {
 
     expect(result.tools.map((tool) => tool.name)).toEqual([
       "get_service_info",
+      "check_merchant",
       "inspect_merchant",
     ]);
-    expect(result.tools[1]._meta).toMatchObject({
-      "agents-x402/paymentRequired": true,
-      "agents-x402/priceUSD": 0.01,
-    });
     expect(result.tools[1].annotations).toMatchObject({
       readOnlyHint: true,
       openWorldHint: true,
     });
+    expect(result.tools[2]._meta).toMatchObject({
+      "agents-x402/paymentRequired": true,
+      "agents-x402/priceUSD": 0.01,
+    });
+    expect(result.tools[2].annotations).toMatchObject({
+      readOnlyHint: true,
+      openWorldHint: true,
+    });
+  });
+
+  it("returns a free merchant summary without detailed resource evidence", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>().mockImplementation(async (request) => {
+        const path = new URL(String(request)).pathname;
+        const found = path === "/" || path === "/robots.txt";
+
+        return new Response(found ? "found" : "missing", {
+          status: found ? 200 : 404,
+          headers: { "content-type": "text/plain" },
+        });
+      }),
+    );
+    const server = createMerchantContextServer({
+      network: "base-sepolia",
+      recipient: "0x0000000000000000000000000000000000000001",
+    });
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    const [clientTransport, serverTransport] =
+      InMemoryTransport.createLinkedPair();
+
+    await Promise.all([
+      server.connect(serverTransport),
+      client.connect(clientTransport),
+    ]);
+    closeCallbacks.push(
+      () => client.close(),
+      () => server.close(),
+    );
+
+    const result = await client.callTool({
+      name: "check_merchant",
+      arguments: { merchant_url: "https://merchant.example/store" },
+    });
+    const content = result.content as Array<{ type: string; text: string }>;
+    const payload = JSON.parse(content[0].text);
+
+    expect(payload).toMatchObject({
+      origin: "https://merchant.example",
+      summary: { passed: 2, total: 6, score: 33 },
+      full_report: {
+        tool: "inspect_merchant",
+        price_usd: 0.01,
+        payment: "x402",
+      },
+    });
+    expect(payload.checks).toHaveLength(6);
+    expect(payload).not.toHaveProperty("resources");
   });
 
   it("fails closed when payment settlement is not configured", () => {

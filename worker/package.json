@@ -1,6 +1,6 @@
 {
   "name": "@atomandbits/merchant-context-worker",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -17,6 +17,7 @@
     "@modelcontextprotocol/sdk": "^1.30.0",
     "@x402/core": "^2.0.0",
     "@x402/evm": "^2.0.0",
+    "@x402/extensions": "^2.21.0",
     "agents": "^0.20.1",
     "viem": "^2.55.10",
     "zod": "^4.4.3"

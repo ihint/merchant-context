@@ -1,0 +1,25 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.ihint/merchant-context",
+  "title": "Merchant Context",
+  "description": "Check whether a merchant exposes the public files buyer agents need.",
+  "version": "0.2.0",
+  "websiteUrl": "https://merchant.atomandbits.com",
+  "repository": {
+    "url": "https://github.com/ihint/merchant-context",
+    "source": "github"
+  },
+  "icons": [
+    {
+      "src": "https://merchant.atomandbits.com/favicon.svg",
+      "mimeType": "image/svg+xml",
+      "sizes": ["any"]
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://api.merchant.atomandbits.com/mcp"
+    }
+  ]
+}

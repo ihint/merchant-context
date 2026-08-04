@@ -37,8 +37,9 @@ the launch gates and tracks verified integrations.
 
 ## Paid beta endpoint
 
-- MCP: `https://merchant-context-mcp.ian-363.workers.dev/mcp`
-- HTTP x402: `POST https://merchant-context-mcp.ian-363.workers.dev/v1/inspect`
+- MCP: `https://api.merchant.atomandbits.com/mcp`
+- Free MCP tool: `check_merchant`
+- HTTP x402: `POST https://api.merchant.atomandbits.com/v1/inspect`
 - Price: $0.01 USDC on Base
 - First verified settlement: [Base transaction `0x2f0f…57af`](https://basescan.org/tx/0x2f0fcf185021b68c827d5668f5d55481ca9d1f768b5e77b9d300e12b604f57af)
 
@@ -67,6 +68,7 @@ The first paid call settled on 2026-08-04 and returned a live inspection of
 The [`worker`](worker) directory contains the hosted MCP service under test. It exposes:
 
 - `get_service_info`, a free tool that states the checks, price, payment network, and source;
+- `check_merchant`, a free tool that returns the score and pass/fail checks without detailed evidence;
 - `inspect_merchant`, a $0.01 x402 tool that checks six fixed public discovery paths;
 - `POST /v1/inspect`, the same $0.01 inspection through standard HTTP x402 clients; and
 - `/.well-known/merchant-context`, a public service record for agents and registries.

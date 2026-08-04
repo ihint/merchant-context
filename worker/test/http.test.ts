@@ -35,6 +35,7 @@ describe("public HTTP surface", () => {
       },
       tools: [
         { name: "get_service_info", price_usd: 0, payment: "none" },
+        { name: "check_merchant", price_usd: 0, payment: "none" },
         { name: "inspect_merchant", price_usd: 0.01, payment: "x402" },
       ],
     });
