@@ -1,15 +1,19 @@
+import { createFacilitatorConfig } from "@coinbase/x402";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { withX402 } from "agents/x402";
+import { withX402, type FacilitatorConfig } from "agents/x402";
 import { z } from "zod";
 
 import { inspectMerchant } from "./inspect";
 
 export interface PaymentConfig {
+  facilitator?: FacilitatorConfig;
   network: "base" | "base-sepolia";
   recipient: `0x${string}`;
 }
 
 export interface PaymentEnv {
+  CDP_API_KEY_ID?: string;
+  CDP_API_KEY_SECRET?: string;
   X402_NETWORK?: string;
   X402_RECIPIENT?: string;
 }
@@ -42,6 +46,21 @@ export function paymentConfigFromEnv(env: PaymentEnv): PaymentConfig {
 
   if (network !== "base" && network !== "base-sepolia") {
     throw new Error("X402_NETWORK must be base or base-sepolia");
+  }
+
+  if (network === "base") {
+    const apiKeyId = env.CDP_API_KEY_ID;
+    const apiKeySecret = env.CDP_API_KEY_SECRET;
+
+    if (!apiKeyId || !apiKeySecret) {
+      throw new Error("CDP facilitator credentials are required for Base");
+    }
+
+    return {
+      facilitator: createFacilitatorConfig(apiKeyId, apiKeySecret),
+      network,
+      recipient: recipient as `0x${string}`,
+    };
   }
 
   return { network, recipient: recipient as `0x${string}` };

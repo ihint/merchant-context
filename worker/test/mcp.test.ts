@@ -60,6 +60,26 @@ describe("merchant context MCP server", () => {
         X402_NETWORK: "ethereum",
       }),
     ).toThrow("X402_NETWORK must be base or base-sepolia");
+    expect(() =>
+      paymentConfigFromEnv({
+        X402_RECIPIENT: "0x0000000000000000000000000000000000000001",
+        X402_NETWORK: "base",
+      }),
+    ).toThrow("CDP facilitator credentials are required for Base");
+  });
+
+  it("uses the authenticated CDP facilitator for Base mainnet", () => {
+    const config = paymentConfigFromEnv({
+      CDP_API_KEY_ID: "test-key-id",
+      CDP_API_KEY_SECRET: "test-key-secret",
+      X402_RECIPIENT: "0x0000000000000000000000000000000000000001",
+      X402_NETWORK: "base",
+    });
+
+    expect(config.facilitator).toMatchObject({
+      url: "https://api.cdp.coinbase.com/platform/v2/x402",
+    });
+    expect(config.facilitator?.createAuthHeaders).toBeTypeOf("function");
   });
 
   it("returns x402 payment terms before running the paid tool", async () => {
