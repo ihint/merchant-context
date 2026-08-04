@@ -6,6 +6,10 @@ import {
 } from "@x402/core/http";
 import { x402ResourceServer } from "@x402/core/server";
 import { ExactEvmScheme } from "@x402/evm/exact/server";
+import {
+  bazaarResourceServerExtension,
+  declareDiscoveryExtension,
+} from "@x402/extensions/bazaar";
 
 import { normalizePublicOrigin } from "./inspect";
 import type { SettlementObservation } from "./metrics";
@@ -29,10 +33,9 @@ export async function createPaidInspectHandler(
   options: PaidInspectOptions,
 ): Promise<(request: Request) => Promise<Response>> {
   const network = options.network === "base" ? "eip155:8453" : "eip155:84532";
-  const resourceServer = new x402ResourceServer(options.facilitator).register(
-    "eip155:*",
-    new ExactEvmScheme(),
-  );
+  const resourceServer = new x402ResourceServer(options.facilitator)
+    .register("eip155:*", new ExactEvmScheme())
+    .registerExtension(bazaarResourceServerExtension);
   const httpServer = new x402HTTPResourceServer(resourceServer, {
     "POST /v1/inspect": {
       accepts: {
@@ -41,8 +44,51 @@ export async function createPaidInspectHandler(
         payTo: options.recipient,
         price: "$0.01",
       },
-      description: "Inspect one merchant for agent discovery files",
+      description:
+        "Inspect a merchant's public discovery and commerce files for buyer agents",
       mimeType: "application/json",
+      serviceName: "Merchant Context",
+      tags: ["merchant", "agentic-commerce", "discovery", "readiness"],
+      iconUrl: "https://merchant.atomandbits.com/favicon.svg",
+      extensions: declareDiscoveryExtension({
+        bodyType: "json",
+        input: {
+          merchant_url: "https://merchant.atomandbits.com",
+          agent_id: "merchant-context-bazaar",
+        },
+        inputSchema: {
+          properties: {
+            merchant_url: {
+              type: "string",
+              format: "uri",
+              description: "Public HTTPS merchant origin to inspect",
+            },
+            agent_id: {
+              type: "string",
+              minLength: 3,
+              maxLength: 128,
+              description:
+                "Stable, non-secret identifier for the calling agent",
+            },
+          },
+          required: ["merchant_url", "agent_id"],
+          additionalProperties: false,
+        },
+        output: {
+          example: {
+            origin: "https://merchant.atomandbits.com",
+            summary: { passed: 6, total: 6, score: 100 },
+            checks: [
+              { id: "website", path: "/", status: "pass" },
+              {
+                id: "merchant_context",
+                path: "/merchant-context.json",
+                status: "pass",
+              },
+            ],
+          },
+        },
+      }),
     },
   });
 

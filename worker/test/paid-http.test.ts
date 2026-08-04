@@ -57,6 +57,12 @@ describe("paid HTTP merchant inspection", () => {
     expect(encodedTerms).not.toBeNull();
     expect(decodePaymentRequiredHeader(encodedTerms!)).toMatchObject({
       x402Version: 2,
+      resource: {
+        description:
+          "Inspect a merchant's public discovery and commerce files for buyer agents",
+        serviceName: "Merchant Context",
+        tags: ["merchant", "agentic-commerce", "discovery", "readiness"],
+      },
       accepts: [
         {
           network: "eip155:84532",
@@ -64,6 +70,21 @@ describe("paid HTTP merchant inspection", () => {
           payTo: "0x0000000000000000000000000000000000000001",
         },
       ],
+      extensions: {
+        bazaar: {
+          info: {
+            input: {
+              type: "http",
+              method: "POST",
+              bodyType: "json",
+              body: {
+                merchant_url: "https://merchant.atomandbits.com",
+                agent_id: "merchant-context-bazaar",
+              },
+            },
+          },
+        },
+      },
     });
     expect(inspect).not.toHaveBeenCalled();
   });

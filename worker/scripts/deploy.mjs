@@ -8,6 +8,7 @@ const workerRoot = fileURLToPath(new URL("..", import.meta.url));
 const repositoryRoot = fileURLToPath(new URL("../..", import.meta.url));
 const configPath = fileURLToPath(new URL("../wrangler.jsonc", import.meta.url));
 const databaseName = "merchant-context-usage";
+const canonicalEndpoint = new URL("https://api.merchant.atomandbits.com");
 
 export function productionInputs(environment) {
   if (environment.ALLOW_PRODUCTION_DEPLOY !== "merchant-context") {
@@ -212,6 +213,7 @@ async function verifyEndpoint(endpoint) {
 
     if (
       !names.includes("get_service_info") ||
+      !names.includes("check_merchant") ||
       !names.includes("inspect_merchant")
     ) {
       throw new Error("MCP tool list is incomplete");
@@ -315,6 +317,10 @@ async function main() {
   const endpoint = new URL(endpointMatch[0]);
   await verifyEndpointWithRetry(endpoint);
   process.stdout.write(`Verified production endpoint: ${endpoint.origin}\n`);
+  await verifyEndpointWithRetry(canonicalEndpoint);
+  process.stdout.write(
+    `Verified canonical endpoint: ${canonicalEndpoint.origin}\n`,
+  );
 }
 
 const invokedPath = process.argv[1]

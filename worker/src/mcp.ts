@@ -142,7 +142,7 @@ export function createMerchantContextServer(config: PaymentConfig): McpServer {
 }
 
 export function newMerchantContextServer(): McpServer {
-  return new McpServer({ name: "merchant-context", version: "0.1.0" });
+  return new McpServer({ name: "merchant-context", version: "0.2.0" });
 }
 
 export function registerMerchantContextTools(
@@ -164,9 +164,11 @@ export function registerMerchantContextTools(
     async () =>
       jsonToolResult({
         name: "Merchant Context",
-        version: "0.1.0",
+        version: "0.2.0",
         operator: "Atom & Bits",
         documentation: "https://merchant.atomandbits.com",
+        mcp_url: "https://api.merchant.atomandbits.com/mcp",
+        http_url: "https://api.merchant.atomandbits.com/v1/inspect",
         inspection_price_usd: 0.01,
         payment_protocol: "x402",
         payment_network: config.network,
@@ -179,6 +181,41 @@ export function registerMerchantContextTools(
           "/merchant-context.json",
         ],
       }),
+  );
+
+  server.registerTool(
+    "check_merchant",
+    {
+      description:
+        "Return a free readiness score and pass/fail checks for one public HTTPS merchant origin. Use inspect_merchant for detailed resource evidence.",
+      inputSchema: {
+        merchant_url: z
+          .string()
+          .url()
+          .describe("Public HTTPS merchant URL to check"),
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
+    },
+    async ({ merchant_url }) => {
+      const inspection = await inspectMerchant(merchant_url);
+
+      return jsonToolResult({
+        origin: inspection.origin,
+        summary: inspection.summary,
+        checks: inspection.checks,
+        full_report: {
+          tool: "inspect_merchant",
+          price_usd: 0.01,
+          payment: "x402",
+          network: config.network,
+        },
+      });
+    },
   );
 
   const paidServer = withX402(server, config);

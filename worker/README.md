@@ -14,7 +14,7 @@ and returns the inspection as JSON with the settlement receipt in the `PAYMENT-R
 Clients may send the two fields as JSON or as query parameters when their x402 discovery step does
 not preserve request bodies.
 
-Production beta: `https://merchant-context-mcp.ian-363.workers.dev/v1/inspect`
+Production beta: `https://api.merchant.atomandbits.com/v1/inspect`
 
 ## Run the checks
 

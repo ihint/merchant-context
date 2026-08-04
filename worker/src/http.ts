@@ -19,7 +19,7 @@ export function handlePublicRequest(request: Request): Response | null {
     return jsonResponse(
       {
         name: "Merchant Context",
-        version: "0.1.0",
+        version: "0.2.0",
         operator: "Atom & Bits",
         documentation: "https://merchant.atomandbits.com",
         source: "https://github.com/ihint/merchant-context",
@@ -42,6 +42,11 @@ export function handlePublicRequest(request: Request): Response | null {
         tools: [
           {
             name: "get_service_info",
+            price_usd: 0,
+            payment: "none",
+          },
+          {
+            name: "check_merchant",
             price_usd: 0,
             payment: "none",
           },
