@@ -8,8 +8,9 @@
     "typecheck": "tsc --noEmit",
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
+    "deploy:production": "node scripts/deploy.mjs",
     "example:paid": "node examples/pay.mjs",
-    "format:check": "prettier --check src test examples"
+    "format:check": "prettier --check src test examples scripts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",

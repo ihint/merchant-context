@@ -65,3 +65,20 @@ npx wrangler d1 execute merchant-context-usage --remote \
 The report counts Base mainnet settlements only. `distinct_agent_payer_pairs` is the working paid
 agent measure. `distinct_payers` shows how many payer wallets those agents used. Agent IDs are
 self-declared, so publish both counts with the on-chain transaction evidence.
+
+## Deploy production
+
+Use a public Base receive address. Do not put a private key or seed phrase in this shell.
+
+```sh
+export X402_RECIPIENT="0x..."
+export ALLOW_PRODUCTION_DEPLOY="merchant-context"
+npm run deploy:production
+```
+
+The command requires a clean Git tree, runs every local check, confirms Cloudflare access, reuses or
+creates the `merchant-context-usage` D1 database, writes its public binding and receive address to
+`wrangler.jsonc`, applies tracked migrations with a backup, deploys, and verifies health, discovery,
+the MCP tool list, and the unpaid $0.01 Base challenge. It refuses to run when
+`X402_CLIENT_PRIVATE_KEY` is present. Review and commit the resulting config change after the live
+checks pass.

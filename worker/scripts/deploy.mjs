@@ -1,0 +1,296 @@
+#!/usr/bin/env node
+
+import { spawnSync } from "node:child_process";
+import { readFileSync, writeFileSync } from "node:fs";
+import { fileURLToPath, pathToFileURL } from "node:url";
+
+const workerRoot = fileURLToPath(new URL("..", import.meta.url));
+const repositoryRoot = fileURLToPath(new URL("../..", import.meta.url));
+const configPath = fileURLToPath(new URL("../wrangler.jsonc", import.meta.url));
+const databaseName = "merchant-context-usage";
+
+export function productionInputs(environment) {
+  if (environment.ALLOW_PRODUCTION_DEPLOY !== "merchant-context") {
+    throw new Error(
+      "Set ALLOW_PRODUCTION_DEPLOY=merchant-context to approve this deployment",
+    );
+  }
+
+  if (environment.X402_CLIENT_PRIVATE_KEY) {
+    throw new Error("Unset X402_CLIENT_PRIVATE_KEY before deploying");
+  }
+
+  const recipient = environment.X402_RECIPIENT;
+
+  if (
+    typeof recipient !== "string" ||
+    !/^0x[0-9a-fA-F]{40}$/.test(recipient) ||
+    /^0x0{40}$/.test(recipient)
+  ) {
+    throw new Error("X402_RECIPIENT must be a public 20-byte EVM address");
+  }
+
+  return { recipient };
+}
+
+export function withProductionBindings(config, { databaseId, recipient }) {
+  const existingDatabases = Array.isArray(config.d1_databases)
+    ? config.d1_databases.filter((item) => item?.binding !== "USAGE_DB")
+    : [];
+
+  return {
+    ...config,
+    vars: {
+      ...(config.vars ?? {}),
+      X402_NETWORK: "base",
+      X402_RECIPIENT: recipient,
+    },
+    d1_databases: [
+      ...existingDatabases,
+      {
+        binding: "USAGE_DB",
+        database_name: databaseName,
+        database_id: databaseId,
+        migrations_dir: "migrations",
+      },
+    ],
+  };
+}
+
+function run(command, args, options = {}) {
+  const result = spawnSync(command, args, {
+    cwd: options.cwd ?? workerRoot,
+    env: options.env ?? process.env,
+    encoding: "utf8",
+    stdio: options.capture ? "pipe" : "inherit",
+  });
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  if (result.status !== 0) {
+    if (options.capture) {
+      process.stderr.write(result.stderr ?? "");
+    }
+    throw new Error(`${command} exited with status ${result.status}`);
+  }
+
+  if (!options.capture) {
+    return "";
+  }
+
+  return options.combine
+    ? `${result.stdout ?? ""}${result.stderr ?? ""}`
+    : (result.stdout ?? "");
+}
+
+function readConfig() {
+  return JSON.parse(readFileSync(configPath, "utf8"));
+}
+
+function writeConfig(config) {
+  writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf8");
+}
+
+function configuredDatabaseId(config) {
+  const binding = config.d1_databases?.find(
+    (database) => database.binding === "USAGE_DB",
+  );
+
+  return binding?.database_id ?? null;
+}
+
+function findOrCreateDatabase() {
+  const configured = configuredDatabaseId(readConfig());
+
+  if (configured !== null) {
+    return configured;
+  }
+
+  const databases = JSON.parse(
+    run("npx", ["wrangler", "d1", "list", "--json"], { capture: true }),
+  );
+  const existing = databases.find((database) => database.name === databaseName);
+  const existingId = existing?.uuid ?? existing?.id;
+
+  if (typeof existingId === "string" && existingId !== "") {
+    return existingId;
+  }
+
+  run("npx", [
+    "wrangler",
+    "d1",
+    "create",
+    databaseName,
+    "--binding",
+    "USAGE_DB",
+    "--update-config",
+    "--use-remote",
+    "--location",
+    "enam",
+  ]);
+
+  const createdId = configuredDatabaseId(readConfig());
+
+  if (createdId === null) {
+    throw new Error("Wrangler created D1 but did not update its binding");
+  }
+
+  return createdId;
+}
+
+async function verifyEndpoint(endpoint) {
+  const healthResponse = await fetch(new URL("/health", endpoint), {
+    signal: AbortSignal.timeout(10_000),
+  });
+
+  if (!healthResponse.ok) {
+    throw new Error(`Health check returned ${healthResponse.status}`);
+  }
+
+  const health = await healthResponse.json();
+
+  if (health?.status !== "ok") {
+    throw new Error("Health check body is invalid");
+  }
+
+  const serviceResponse = await fetch(
+    new URL("/.well-known/merchant-context", endpoint),
+    { signal: AbortSignal.timeout(10_000) },
+  );
+  const service = await serviceResponse.json();
+
+  if (
+    !serviceResponse.ok ||
+    service?.mcp?.url !== new URL("/mcp", endpoint).toString()
+  ) {
+    throw new Error("Public service record is invalid");
+  }
+
+  const [{ Client }, { StreamableHTTPClientTransport }] = await Promise.all([
+    import("@modelcontextprotocol/sdk/client/index.js"),
+    import("@modelcontextprotocol/sdk/client/streamableHttp.js"),
+  ]);
+  const client = new Client({
+    name: "merchant-context-deploy-check",
+    version: "0.1.0",
+  });
+
+  try {
+    await client.connect(
+      new StreamableHTTPClientTransport(new URL("/mcp", endpoint)),
+    );
+    const tools = await client.listTools();
+    const names = tools.tools.map((tool) => tool.name);
+
+    if (
+      !names.includes("get_service_info") ||
+      !names.includes("inspect_merchant")
+    ) {
+      throw new Error("MCP tool list is incomplete");
+    }
+
+    const challenge = await client.callTool({
+      name: "inspect_merchant",
+      arguments: {
+        merchant_url: "https://merchant.atomandbits.com",
+        agent_id: "merchant-context-deploy-check",
+      },
+    });
+    const paymentError = challenge._meta?.["x402/error"];
+
+    if (
+      challenge.isError !== true ||
+      paymentError?.error !== "PAYMENT_REQUIRED" ||
+      paymentError?.accepts?.[0]?.network !== "eip155:8453" ||
+      paymentError?.accepts?.[0]?.amount !== "10000"
+    ) {
+      throw new Error("Paid tool did not return the expected x402 challenge");
+    }
+  } finally {
+    await client.close();
+  }
+}
+
+async function verifyEndpointWithRetry(endpoint) {
+  let lastError;
+
+  for (let attempt = 1; attempt <= 5; attempt += 1) {
+    try {
+      await verifyEndpoint(endpoint);
+      return;
+    } catch (error) {
+      lastError = error;
+
+      if (attempt < 5) {
+        await new Promise((resolve) => setTimeout(resolve, 2_000));
+      }
+    }
+  }
+
+  throw lastError;
+}
+
+async function main() {
+  const { recipient } = productionInputs(process.env);
+  const changes = run("git", ["status", "--porcelain"], {
+    cwd: repositoryRoot,
+    capture: true,
+  });
+
+  if (changes.trim() !== "") {
+    throw new Error("Commit or stash repository changes before deploying");
+  }
+
+  run("npm", ["test"]);
+  run("npm", ["run", "typecheck"]);
+  run("npm", ["run", "format:check"]);
+  run("npm", ["audit", "--audit-level=high"]);
+  run("npx", ["wrangler", "deploy", "--dry-run"]);
+  run("npx", ["wrangler", "whoami"]);
+
+  const databaseId = findOrCreateDatabase();
+  writeConfig(withProductionBindings(readConfig(), { databaseId, recipient }));
+
+  run("npx", ["wrangler", "deploy", "--dry-run"]);
+  run("npx", ["wrangler", "d1", "migrations", "list", "USAGE_DB", "--remote"]);
+  run(
+    "npx",
+    ["wrangler", "d1", "migrations", "apply", "USAGE_DB", "--remote"],
+    { env: { ...process.env, CI: "true" } },
+  );
+
+  const deployOutput = run("npx", ["wrangler", "deploy", "--keep-vars"], {
+    capture: true,
+    combine: true,
+  });
+  process.stdout.write(deployOutput);
+
+  const endpointMatch = deployOutput.match(
+    /https:\/\/[a-zA-Z0-9.-]+\.workers\.dev/,
+  );
+
+  if (!endpointMatch) {
+    throw new Error(
+      "Deployment completed but its workers.dev URL was not found",
+    );
+  }
+
+  const endpoint = new URL(endpointMatch[0]);
+  await verifyEndpointWithRetry(endpoint);
+  process.stdout.write(`Verified production endpoint: ${endpoint.origin}\n`);
+}
+
+const invokedPath = process.argv[1]
+  ? pathToFileURL(process.argv[1]).href
+  : undefined;
+
+if (invokedPath === import.meta.url) {
+  main().catch((error) => {
+    process.stderr.write(
+      `${error instanceof Error ? error.message : "Production deployment failed"}\n`,
+    );
+    process.exitCode = 1;
+  });
+}
