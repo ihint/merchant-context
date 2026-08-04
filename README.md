@@ -28,6 +28,10 @@ This is an early public draft from [Atom & Bits](https://atomandbits.com). It is
 
 The goal is to give merchants one testable context layer that can map to those systems as they mature.
 
+Agent and framework builders can follow the
+[first 100 paid integrations](https://github.com/ihint/merchant-context/issues/6). The issue states
+the launch gates and will list the verified endpoint when it is safe to call.
+
 ## Quick start
 
 1. Work through [CHECKLIST.md](CHECKLIST.md).
