@@ -13,6 +13,15 @@ This repo contains:
 - a [worked SaaS example](examples/saas.json); and
 - a [map of the main commerce and discovery standards](docs/protocol-map.md).
 
+## Canonical sources
+
+- Product and machine brief: https://merchant.atomandbits.com/llms.txt
+- Version 0.1 schema: https://merchant.atomandbits.com/schema/merchant-context-v0.1.json
+- Open source and history: https://github.com/ihint/merchant-context
+
+The domain schema and [`schema/merchant-context.schema.json`](schema/merchant-context.schema.json)
+must stay semantically equal. Versioned releases preserve old contracts.
+
 ## Status
 
 This is an early public draft from [Atom & Bits](https://atomandbits.com). It is not a new payment or checkout protocol. It does not certify ACP, UCP, MCP, A2A, x402, or Web Bot Auth support.
