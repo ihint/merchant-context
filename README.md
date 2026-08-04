@@ -30,7 +30,17 @@ The goal is to give merchants one testable context layer that can map to those s
 
 Agent and framework builders can follow the
 [first 100 paid integrations](https://github.com/ihint/merchant-context/issues/6). The issue states
-the launch gates and will list the verified endpoint when it is safe to call.
+the launch gates and tracks verified integrations.
+
+## Paid beta endpoint
+
+- MCP: `https://merchant-context-mcp.ian-363.workers.dev/mcp`
+- HTTP x402: `POST https://merchant-context-mcp.ian-363.workers.dev/v1/inspect`
+- Price: $0.01 USDC on Base
+- First verified settlement: [Base transaction `0x2f0f…57af`](https://basescan.org/tx/0x2f0fcf185021b68c827d5668f5d55481ca9d1f768b5e77b9d300e12b604f57af)
+
+The first paid call settled on 2026-08-04 and returned a live inspection of
+`https://merchant.atomandbits.com`.
 
 ## Quick start
 
