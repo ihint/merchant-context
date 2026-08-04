@@ -8,6 +8,7 @@ import {
   type PaymentEnv,
 } from "./mcp";
 import { recordSettlement, recordVerifiedPayment } from "./metrics";
+import { mcpHandlerOptions } from "./runtime-config";
 import { capturePaymentToken, settlementFromResponse } from "./settlement";
 
 export interface Env extends PaymentEnv {
@@ -34,9 +35,7 @@ export class MerchantContextMcp extends McpAgent<Env> {
   }
 }
 
-const mcpHandler = MerchantContextMcp.serve("/mcp", {
-  transport: "streamable-http",
-});
+const mcpHandler = MerchantContextMcp.serve("/mcp", mcpHandlerOptions);
 
 export default {
   async fetch(
