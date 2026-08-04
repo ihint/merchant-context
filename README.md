@@ -64,16 +64,13 @@ The first paid call settled on 2026-08-04 and returned a live inspection of
 The [`worker`](worker) directory contains the hosted MCP service under test. It exposes:
 
 - `get_service_info`, a free tool that states the checks, price, payment network, and source;
-- `inspect_merchant`, a $0.01 x402 tool that checks six fixed public discovery paths; and
+- `inspect_merchant`, a $0.01 x402 tool that checks six fixed public discovery paths;
 - `POST /v1/inspect`, the same $0.01 inspection through standard HTTP x402 clients; and
 - `/.well-known/merchant-context`, a public service record for agents and registries.
 
 The inspector accepts public HTTPS origins only. It blocks local and IP targets, checks each
 redirect, caps response size and time, and returns no page body. The payment path records hashes,
 not wallet addresses or signed payment tokens.
-
-We will list the production endpoint here after payment settlement, usage storage, and a live paid
-call pass their checks.
 
 Run its local checks:
 
