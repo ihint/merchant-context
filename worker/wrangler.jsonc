@@ -3,9 +3,13 @@
   "name": "merchant-context-mcp",
   "main": "src/index.ts",
   "compatibility_date": "2026-08-03",
-  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "compatibility_flags": [
+    "nodejs_compat",
+    "global_fetch_strictly_public"
+  ],
   "vars": {
-    "X402_NETWORK": "base"
+    "X402_NETWORK": "base",
+    "X402_RECIPIENT": "0x11abA13083A7F07416CE2cBA0aBD644F11f39B12"
   },
   "durable_objects": {
     "bindings": [
@@ -28,7 +32,9 @@
   "migrations": [
     {
       "tag": "v1",
-      "new_sqlite_classes": ["MerchantContextMcp"]
+      "new_sqlite_classes": [
+        "MerchantContextMcp"
+      ]
     }
   ],
   "observability": {
@@ -40,7 +46,7 @@
       "binding": "USAGE_DB",
       "database_name": "merchant-context-usage",
       "database_id": "f82c080f-d1f1-4413-b67a-2e960aa1d388",
-      "remote": true
+      "migrations_dir": "migrations"
     }
   ]
 }
