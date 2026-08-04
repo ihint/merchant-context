@@ -239,18 +239,27 @@ async function verifyEndpoint(endpoint) {
   }
 }
 
-async function verifyEndpointWithRetry(endpoint) {
+export async function verifyEndpointWithRetry(
+  endpoint,
+  {
+    attempts = 10,
+    delayMs = 2_000,
+    verify = verifyEndpoint,
+    sleep = (milliseconds) =>
+      new Promise((resolve) => setTimeout(resolve, milliseconds)),
+  } = {},
+) {
   let lastError;
 
-  for (let attempt = 1; attempt <= 5; attempt += 1) {
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
-      await verifyEndpoint(endpoint);
+      await verify(endpoint);
       return;
     } catch (error) {
       lastError = error;
 
-      if (attempt < 5) {
-        await new Promise((resolve) => setTimeout(resolve, 2_000));
+      if (attempt < attempts) {
+        await sleep(delayMs);
       }
     }
   }

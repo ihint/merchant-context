@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   productionInputs,
+  verifyEndpointWithRetry,
   withProductionBindings,
 } from "../scripts/deploy.mjs";
 
@@ -64,5 +65,23 @@ describe("production deploy guard", () => {
         },
       ],
     });
+  });
+
+  it("allows enough time for a new Worker route to become live", async () => {
+    let attempts = 0;
+
+    await verifyEndpointWithRetry(new URL("https://example.com"), {
+      attempts: 10,
+      delayMs: 0,
+      verify: async () => {
+        attempts += 1;
+
+        if (attempts < 6) {
+          throw new Error("not live yet");
+        }
+      },
+    });
+
+    expect(attempts).toBe(6);
   });
 });
