@@ -21,6 +21,13 @@ describe("public HTTP surface", () => {
         transport: "streamable-http",
         url: "https://merchant.atomandbits.com/mcp",
       },
+      http: {
+        method: "POST",
+        url: "https://merchant.atomandbits.com/v1/inspect",
+        price_usd: 0.01,
+        payment: "x402",
+        network: "base",
+      },
       tools: [
         { name: "get_service_info", price_usd: 0, payment: "none" },
         { name: "inspect_merchant", price_usd: 0.01, payment: "x402" },

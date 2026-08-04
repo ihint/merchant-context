@@ -1,6 +1,8 @@
 import { McpAgent } from "agents/mcp";
+import { HTTPFacilitatorClient } from "@x402/core/http";
 
 import { handlePublicRequest } from "./http";
+import { inspectMerchant } from "./inspect";
 import {
   newMerchantContextServer,
   paymentConfigFromEnv,
@@ -8,6 +10,7 @@ import {
   type PaymentEnv,
 } from "./mcp";
 import { recordSettlement, recordVerifiedPayment } from "./metrics";
+import { createPaidInspectHandler } from "./paid-http";
 import { mcpHandlerOptions } from "./runtime-config";
 import { capturePaymentToken, trackSettlementInBackground } from "./settlement";
 
@@ -47,6 +50,47 @@ export default {
 
     if (publicResponse !== null) {
       return publicResponse;
+    }
+
+    if (new URL(request.url).pathname === "/v1/inspect") {
+      let paymentConfig;
+
+      try {
+        paymentConfig = paymentConfigFromEnv(env);
+      } catch {
+        return new Response("Payment service is not configured", {
+          status: 503,
+        });
+      }
+
+      if (env.USAGE_DB === undefined) {
+        return new Response("Payment service is not configured", {
+          status: 503,
+        });
+      }
+
+      const source = request.headers.get("cf-connecting-ip") ?? "unknown";
+      const rateLimit = await env.RATE_LIMITER.limit({ key: source });
+
+      if (!rateLimit.success) {
+        return new Response("Rate limit exceeded", {
+          status: 429,
+          headers: { "retry-after": "60" },
+        });
+      }
+
+      const handlePaidInspect = await createPaidInspectHandler({
+        facilitator: new HTTPFacilitatorClient(paymentConfig.facilitator),
+        inspect: inspectMerchant,
+        network: paymentConfig.network,
+        observePayment: (observation) =>
+          recordVerifiedPayment(env.USAGE_DB!, observation),
+        observeSettlement: (settlement) =>
+          recordSettlement(env.USAGE_DB!, settlement),
+        recipient: paymentConfig.recipient,
+      });
+
+      return handlePaidInspect(request);
     }
 
     if (new URL(request.url).pathname.startsWith("/mcp")) {

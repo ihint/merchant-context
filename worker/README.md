@@ -8,6 +8,12 @@ This Worker serves a public Streamable HTTP MCP endpoint with two tools:
 The paid tool checks a fixed set of files on one public HTTPS origin. It does not crawl arbitrary
 links or return page bodies.
 
+The Worker also exposes `POST /v1/inspect` for wallets and agents that support standard HTTP x402.
+It takes the same `merchant_url` and `agent_id` fields, charges the same $0.01 USDC price on Base,
+and returns the inspection as JSON with the settlement receipt in the `PAYMENT-RESPONSE` header.
+Clients may send the two fields as JSON or as query parameters when their x402 discovery step does
+not preserve request bodies.
+
 ## Run the checks
 
 ```sh

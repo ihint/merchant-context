@@ -111,21 +111,38 @@ export async function settlementFromResponse(
       continue;
     }
 
-    const [payerHash, paymentHash] = await Promise.all([
-      sha256(receipt.payer.toLowerCase()),
-      sha256(paymentToken),
-    ]);
-
-    return {
-      network: receipt.network,
-      payerHash,
-      paymentHash,
-      settledAt: clock().toISOString(),
-      transactionHash: receipt.transaction,
-    };
+    return settlementObservationFromReceipt(paymentToken, receipt, clock);
   }
 
   return null;
+}
+
+export async function settlementObservationFromReceipt(
+  paymentToken: string,
+  receipt: { network: string; payer?: string; transaction: string },
+  clock: Clock = () => new Date(),
+): Promise<SettlementObservation> {
+  if (
+    typeof receipt.payer !== "string" ||
+    !/^0x[0-9a-fA-F]{40}$/.test(receipt.payer) ||
+    !supportedNetworks.has(receipt.network) ||
+    !/^0x[0-9a-fA-F]{64}$/.test(receipt.transaction)
+  ) {
+    throw new Error("Settlement response is invalid");
+  }
+
+  const [payerHash, paymentHash] = await Promise.all([
+    sha256(receipt.payer.toLowerCase()),
+    sha256(paymentToken),
+  ]);
+
+  return {
+    network: receipt.network,
+    payerHash,
+    paymentHash,
+    settledAt: clock().toISOString(),
+    transactionHash: receipt.transaction.toLowerCase(),
+  };
 }
 
 function validPaymentToken(value: unknown): string | null {

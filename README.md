@@ -55,6 +55,7 @@ The [`worker`](worker) directory contains the hosted MCP service under test. It 
 
 - `get_service_info`, a free tool that states the checks, price, payment network, and source;
 - `inspect_merchant`, a $0.01 x402 tool that checks six fixed public discovery paths; and
+- `POST /v1/inspect`, the same $0.01 inspection through standard HTTP x402 clients; and
 - `/.well-known/merchant-context`, a public service record for agents and registries.
 
 The inspector accepts public HTTPS origins only. It blocks local and IP targets, checks each

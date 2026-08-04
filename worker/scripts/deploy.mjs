@@ -163,9 +163,35 @@ async function verifyEndpoint(endpoint) {
 
   if (
     !serviceResponse.ok ||
-    service?.mcp?.url !== new URL("/mcp", endpoint).toString()
+    service?.mcp?.url !== new URL("/mcp", endpoint).toString() ||
+    service?.http?.url !== new URL("/v1/inspect", endpoint).toString()
   ) {
     throw new Error("Public service record is invalid");
+  }
+
+  const httpChallenge = await fetch(new URL("/v1/inspect", endpoint), {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      merchant_url: "https://merchant.atomandbits.com",
+      agent_id: "merchant-context-deploy-check",
+    }),
+    signal: AbortSignal.timeout(10_000),
+  });
+  const paymentRequiredHeader = httpChallenge.headers.get("payment-required");
+
+  if (httpChallenge.status !== 402 || paymentRequiredHeader === null) {
+    throw new Error("Paid HTTP route did not return an x402 challenge");
+  }
+
+  const { decodePaymentRequiredHeader } = await import("@x402/core/http");
+  const httpPayment = decodePaymentRequiredHeader(paymentRequiredHeader);
+
+  if (
+    httpPayment.accepts?.[0]?.network !== "eip155:8453" ||
+    httpPayment.accepts?.[0]?.amount !== "10000"
+  ) {
+    throw new Error("Paid HTTP route returned the wrong x402 terms");
   }
 
   const [{ Client }, { StreamableHTTPClientTransport }] = await Promise.all([

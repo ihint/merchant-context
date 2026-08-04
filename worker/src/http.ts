@@ -27,6 +27,13 @@ export function handlePublicRequest(request: Request): Response | null {
           transport: "streamable-http",
           url: `${url.origin}/mcp`,
         },
+        http: {
+          method: "POST",
+          url: `${url.origin}/v1/inspect`,
+          price_usd: 0.01,
+          payment: "x402",
+          network: "base",
+        },
         tools: [
           {
             name: "get_service_info",
