@@ -4,6 +4,31 @@ const maxResponseBytes = 256 * 1024;
 const supportedNetworks = new Set(["eip155:8453", "eip155:84532"]);
 
 type Clock = () => Date;
+type SettlementObserver = (observation: SettlementObservation) => Promise<void>;
+
+export function trackSettlementInBackground(
+  context: Pick<ExecutionContext, "waitUntil">,
+  paymentToken: string | null,
+  response: Response,
+  observe: SettlementObserver,
+): void {
+  if (paymentToken === null) {
+    return;
+  }
+
+  const settlementResponse = response.clone();
+  context.waitUntil(
+    settlementFromResponse(paymentToken, settlementResponse)
+      .then((settlement) => {
+        if (settlement !== null) {
+          return observe(settlement);
+        }
+      })
+      .catch(() => {
+        console.error("Settlement receipt could not be recorded");
+      }),
+  );
+}
 
 export async function settlementFromExchange(
   request: Request,

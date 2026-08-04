@@ -9,7 +9,7 @@ import {
 } from "./mcp";
 import { recordSettlement, recordVerifiedPayment } from "./metrics";
 import { mcpHandlerOptions } from "./runtime-config";
-import { capturePaymentToken, settlementFromResponse } from "./settlement";
+import { capturePaymentToken, trackSettlementInBackground } from "./settlement";
 
 export interface Env extends PaymentEnv {
   MerchantContextMcp: DurableObjectNamespace<MerchantContextMcp>;
@@ -74,21 +74,13 @@ export default {
         });
       }
 
-      const paymentToken = capturePaymentToken(request);
+      const paymentToken = await capturePaymentToken(request);
       const response = await mcpHandler.fetch(request, env, context);
-      const settlementResponse = response.clone();
-
-      context.waitUntil(
-        paymentToken
-          .then((token) => settlementFromResponse(token, settlementResponse))
-          .then((settlement) => {
-            if (settlement !== null) {
-              return recordSettlement(env.USAGE_DB!, settlement);
-            }
-          })
-          .catch(() => {
-            console.error("Settlement receipt could not be recorded");
-          }),
+      trackSettlementInBackground(
+        context,
+        paymentToken,
+        response,
+        (settlement) => recordSettlement(env.USAGE_DB!, settlement),
       );
 
       return response;

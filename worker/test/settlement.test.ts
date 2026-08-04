@@ -1,6 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { capturePaymentToken, settlementFromExchange } from "../src/settlement";
+import {
+  capturePaymentToken,
+  settlementFromExchange,
+  trackSettlementInBackground,
+} from "../src/settlement";
 
 const paymentToken = btoa(JSON.stringify({ test: true }));
 const payer = `0x${"a".repeat(40)}`;
@@ -101,6 +105,40 @@ describe("settlementFromExchange", () => {
         Response.json({ jsonrpc: "2.0", id: 1, result: {} }),
       ),
     ).resolves.toBeNull();
+  });
+
+  it("does not clone or track an unpaid streaming response", () => {
+    const response = Response.json(paymentResponse());
+    const clone = vi.spyOn(response, "clone");
+    const waitUntil = vi.fn();
+    const observe = vi.fn(async () => {});
+
+    trackSettlementInBackground({ waitUntil }, null, response, observe);
+
+    expect(clone).not.toHaveBeenCalled();
+    expect(waitUntil).not.toHaveBeenCalled();
+    expect(observe).not.toHaveBeenCalled();
+  });
+
+  it("tracks a paid response in the background", async () => {
+    let background: Promise<unknown> | undefined;
+    const waitUntil = vi.fn((promise: Promise<unknown>) => {
+      background = promise;
+    });
+    const observe = vi.fn(async () => {});
+
+    trackSettlementInBackground(
+      { waitUntil },
+      paymentToken,
+      Response.json(paymentResponse()),
+      observe,
+    );
+    await background;
+
+    expect(waitUntil).toHaveBeenCalledOnce();
+    expect(observe).toHaveBeenCalledWith(
+      expect.objectContaining({ transactionHash: transaction }),
+    );
   });
 
   it("rejects malformed settlement metadata without exposing its contents", async () => {
