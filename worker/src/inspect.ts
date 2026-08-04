@@ -1,4 +1,4 @@
-import { merchantContextSchema } from "./schema";
+import { merchantContextSchema, ucpDiscoverySchema } from "./schema";
 
 export interface InspectOptions {
   fetcher?: typeof fetch;
@@ -176,6 +176,13 @@ async function fetchResource(
         if (
           path === "/merchant-context.json" &&
           !merchantContextSchema.safeParse(parsed).success
+        ) {
+          return { ...result, error: "invalid_schema" };
+        }
+
+        if (
+          path === "/.well-known/ucp" &&
+          !ucpDiscoverySchema.safeParse(parsed).success
         ) {
           return { ...result, error: "invalid_schema" };
         }

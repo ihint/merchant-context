@@ -73,3 +73,19 @@ export const merchantContextSchema = z
       .strict(),
   })
   .strict();
+
+export const ucpDiscoverySchema = z
+  .object({
+    ucp: z
+      .object({
+        version: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        services: z.record(z.string(), z.unknown()),
+        payment_handlers: z.record(z.string(), z.unknown()),
+        capabilities: z.record(z.string(), z.unknown()).optional(),
+        supported_versions: z
+          .record(z.string().regex(/^\d{4}-\d{2}-\d{2}$/), z.string().url())
+          .optional(),
+      })
+      .passthrough(),
+  })
+  .passthrough();

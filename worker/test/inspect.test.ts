@@ -179,7 +179,13 @@ describe("inspectMerchant", () => {
 
         const body =
           path === "/.well-known/ucp"
-            ? "{}"
+            ? JSON.stringify({
+                ucp: {
+                  version: "2026-04-08",
+                  services: {},
+                  payment_handlers: {},
+                },
+              })
             : path === "/merchant-context.json"
               ? JSON.stringify(validMerchantContext)
               : "found";
@@ -251,5 +257,29 @@ describe("inspectMerchant", () => {
 
     expect(result.resources[5]).toMatchObject({ error: "invalid_schema" });
     expect(result.checks[5].status).toBe("fail");
+  });
+
+  it("fails a UCP profile that omits required discovery fields", async () => {
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockImplementation(async (request) => {
+        const path = new URL(String(request)).pathname;
+
+        if (path === "/.well-known/ucp") {
+          return new Response("{}", {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          });
+        }
+
+        return new Response("missing", { status: 404 });
+      });
+
+    const result = await inspectMerchant("https://merchant.example", {
+      fetcher,
+    });
+
+    expect(result.resources[4]).toMatchObject({ error: "invalid_schema" });
+    expect(result.checks[4].status).toBe("fail");
   });
 });
