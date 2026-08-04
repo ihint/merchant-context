@@ -34,5 +34,13 @@
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1
-  }
+  },
+  "d1_databases": [
+    {
+      "binding": "USAGE_DB",
+      "database_name": "merchant-context-usage",
+      "database_id": "f82c080f-d1f1-4413-b67a-2e960aa1d388",
+      "remote": true
+    }
+  ]
 }
