@@ -10,6 +10,7 @@ describe("Wrangler routes", () => {
     );
     const config = JSON.parse(readFileSync(configPath, "utf8"));
 
+    expect(config.workers_dev).toBe(true);
     expect(config.routes).toContainEqual({
       pattern: "api.merchant.atomandbits.com",
       custom_domain: true,
