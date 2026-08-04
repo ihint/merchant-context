@@ -182,7 +182,8 @@ async function fetchResource(
 
         if (
           path === "/.well-known/ucp" &&
-          !ucpDiscoverySchema.safeParse(parsed).success
+          (!ucpDiscoverySchema.safeParse(parsed).success ||
+            !hasPublicProfileCache(response.headers))
         ) {
           return { ...result, error: "invalid_schema" };
         }
@@ -195,6 +196,23 @@ async function fetchResource(
   }
 
   throw new Error("Unreachable redirect state");
+}
+
+function hasPublicProfileCache(headers: Headers): boolean {
+  const cacheControl = headers.get("cache-control")?.toLowerCase();
+
+  if (
+    cacheControl === undefined ||
+    !cacheControl.split(",").some((part) => part.trim() === "public") ||
+    cacheControl.includes("private") ||
+    cacheControl.includes("no-store") ||
+    cacheControl.includes("no-cache")
+  ) {
+    return false;
+  }
+
+  const maxAge = cacheControl.match(/(?:^|,)\s*max-age\s*=\s*"?(\d+)"?/);
+  return maxAge !== null && Number(maxAge[1]) >= 60;
 }
 
 function failedResource(path: string): InspectedResource {

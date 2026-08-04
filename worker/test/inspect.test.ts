@@ -189,7 +189,13 @@ describe("inspectMerchant", () => {
             : path === "/merchant-context.json"
               ? JSON.stringify(validMerchantContext)
               : "found";
-        return new Response(body, { status: 200 });
+        return new Response(body, {
+          status: 200,
+          headers:
+            path === "/.well-known/ucp"
+              ? { "cache-control": "public, max-age=300" }
+              : undefined,
+        });
       });
 
     const result = await inspectMerchant("https://merchant.example", {
@@ -270,6 +276,42 @@ describe("inspectMerchant", () => {
             status: 200,
             headers: { "content-type": "application/json" },
           });
+        }
+
+        return new Response("missing", { status: 404 });
+      });
+
+    const result = await inspectMerchant("https://merchant.example", {
+      fetcher,
+    });
+
+    expect(result.resources[4]).toMatchObject({ error: "invalid_schema" });
+    expect(result.checks[4].status).toBe("fail");
+  });
+
+  it("fails a UCP profile that cannot be cached publicly", async () => {
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockImplementation(async (request) => {
+        const path = new URL(String(request)).pathname;
+
+        if (path === "/.well-known/ucp") {
+          return new Response(
+            JSON.stringify({
+              ucp: {
+                version: "2026-04-08",
+                services: {},
+                payment_handlers: {},
+              },
+            }),
+            {
+              status: 200,
+              headers: {
+                "cache-control": "no-store",
+                "content-type": "application/json",
+              },
+            },
+          );
         }
 
         return new Response("missing", { status: 404 });
