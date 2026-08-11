@@ -10,6 +10,7 @@
     "deploy": "wrangler deploy",
     "deploy:production": "node scripts/deploy.mjs",
     "example:paid": "node examples/pay.mjs",
+    "smoke:public:mcp": "node scripts/smoke-public-mcp.mjs",
     "format:check": "prettier --check src test examples scripts"
   },
   "dependencies": {

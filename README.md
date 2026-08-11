@@ -54,6 +54,23 @@ The first paid call settled on 2026-08-04 and returned a live inspection of
 4. Keep prices, stock, policies, and action URLs current.
 5. Run `python3 scripts/validate.py` before publishing.
 
+## Add it to an agent
+
+The remote MCP endpoint works with clients that support Streamable HTTP:
+
+```text
+https://api.merchant.atomandbits.com/mcp
+```
+
+Start with `check_merchant`.
+It is free and does not make a payment.
+
+See the [agent integration guide](docs/agent-integration.md) for Codex, Claude Code,
+Gemini CLI, Cursor, VS Code, and the OpenAI Responses API.
+
+Agents that support the open Agent Skills format can use
+[`skills/merchant-context`](skills/merchant-context/SKILL.md).
+
 ## Design rules
 
 - Facts beat slogans.
