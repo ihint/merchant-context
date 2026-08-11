@@ -1,0 +1,8 @@
+{
+  "name": "merchant-context-cloudflare-browser-run-reference",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}

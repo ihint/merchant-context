@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["default_tools", "before_page_action", "forward_to_webmcp_input", "human_confirmation_for_consequential_actions"],
+  "properties": {
+    "default_tools": { "type": "array", "items": { "type": "string" } },
+    "before_page_action": { "const": "resolve_merchant" },
+    "forward_to_webmcp_input": { "contains": { "const": "merchant_context_session" } },
+    "human_confirmation_for_consequential_actions": { "const": true }
+  }
+}
