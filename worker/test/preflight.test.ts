@@ -13,9 +13,21 @@ describe("preflight", () => {
         human_confirmation_available: true,
       },
     );
-    expect(result.decision).toBe("ready");
+    expect(result.decision).toBe("needs_confirmation");
+    expect(result.approval_required).toBe(true);
     expect(result.selected_safe_action?.id).toBe("buy");
     expect(resolution.selected_action).toBeNull();
+  });
+
+  it("blocks when required human confirmation is unavailable", () => {
+    const result = preflight(
+      fixture(),
+      { action_type: "checkout" },
+      { human_confirmation_available: false },
+    );
+
+    expect(result.decision).toBe("blocked");
+    expect(result.approval_required).toBe(true);
   });
 
   it("requires confirmation and blocks stale evidence outside the limit", () => {

@@ -5,7 +5,14 @@
   "mcpServers": {
     "merchant-context": {
       "httpUrl": "https://api.merchant.atomandbits.com/mcp",
-      "excludeTools": ["refresh_merchant", "inspect_merchant"]
+      "includeTools": [
+        "resolve_merchant",
+        "search_merchants",
+        "compare_offers",
+        "get_safe_actions",
+        "preflight"
+      ],
+      "timeout": 10000
     }
   },
   "contextFileName": "GEMINI.md"

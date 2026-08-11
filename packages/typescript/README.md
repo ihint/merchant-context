@@ -1,6 +1,12 @@
 # Merchant preflight TypeScript client
 
-This zero-dependency client uses direct HTTP. It calls free resolution and preflight routes and blocks paid refresh unless the caller passes `approved: true`. The direct live routes are untested.
+This zero-dependency client uses direct HTTP.
+
+It calls free resolution and preflight routes.
+
+It blocks paid refresh unless the caller passes `approved: true`.
+
+Unit, tarball install, and preview preflight tests passed on 2026-08-11.
 
 ```js
 import { MerchantPreflightClient } from "@atomandbits/merchant-preflight";

@@ -6,25 +6,22 @@
   "routes": [
     {
       "pattern": "api.merchant.atomandbits.com",
-      "custom_domain": true
-    }
+      "custom_domain": true,
+    },
   ],
   "compatibility_date": "2026-08-03",
-  "compatibility_flags": [
-    "nodejs_compat",
-    "global_fetch_strictly_public"
-  ],
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "vars": {
     "X402_NETWORK": "base",
-    "X402_RECIPIENT": "0x11abA13083A7F07416CE2cBA0aBD644F11f39B12"
+    "X402_RECIPIENT": "0x11abA13083A7F07416CE2cBA0aBD644F11f39B12",
   },
   "durable_objects": {
     "bindings": [
       {
         "name": "MerchantContextMcp",
-        "class_name": "MerchantContextMcp"
-      }
-    ]
+        "class_name": "MerchantContextMcp",
+      },
+    ],
   },
   "ratelimits": [
     {
@@ -32,28 +29,64 @@
       "namespace_id": "1001",
       "simple": {
         "limit": 60,
-        "period": 60
-      }
-    }
+        "period": 60,
+      },
+    },
   ],
   "migrations": [
     {
       "tag": "v1",
-      "new_sqlite_classes": [
-        "MerchantContextMcp"
-      ]
-    }
+      "new_sqlite_classes": ["MerchantContextMcp"],
+    },
   ],
   "observability": {
     "enabled": true,
-    "head_sampling_rate": 1
+    "head_sampling_rate": 1,
   },
   "d1_databases": [
     {
       "binding": "USAGE_DB",
       "database_name": "merchant-context-usage",
       "database_id": "f82c080f-d1f1-4413-b67a-2e960aa1d388",
-      "migrations_dir": "migrations"
-    }
-  ]
+      "migrations_dir": "migrations",
+    },
+  ],
+  "env": {
+    "preview": {
+      "name": "merchant-context-mcp-preview",
+      "workers_dev": true,
+      "preview_urls": true,
+      "routes": [],
+      "vars": {
+        "X402_NETWORK": "base-sepolia",
+        "X402_RECIPIENT": "0x11abA13083A7F07416CE2cBA0aBD644F11f39B12",
+      },
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "MerchantContextMcp",
+            "class_name": "MerchantContextMcp",
+          },
+        ],
+      },
+      "ratelimits": [
+        {
+          "name": "RATE_LIMITER",
+          "namespace_id": "1002",
+          "simple": {
+            "limit": 60,
+            "period": 60,
+          },
+        },
+      ],
+      "d1_databases": [
+        {
+          "binding": "USAGE_DB",
+          "database_name": "merchant-context-usage-preview",
+          "database_id": "f81ac6c4-41c9-48b7-a452-06bb9edb885c",
+          "migrations_dir": "migrations",
+        },
+      ],
+    },
+  },
 }

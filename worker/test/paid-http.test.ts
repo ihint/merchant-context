@@ -59,9 +59,9 @@ describe("paid HTTP merchant inspection", () => {
       x402Version: 2,
       resource: {
         description:
-          "Inspect a merchant's public discovery and commerce files for buyer agents",
+          "Refresh sourced merchant evidence after explicit human approval",
         serviceName: "Merchant Context",
-        tags: ["merchant", "agentic-commerce", "discovery", "readiness"],
+        tags: ["merchant", "agentic-commerce", "evidence", "freshness"],
       },
       accepts: [
         {
@@ -80,6 +80,7 @@ describe("paid HTTP merchant inspection", () => {
               body: {
                 merchant_url: "https://merchant.atomandbits.com",
                 agent_id: "merchant-context-bazaar",
+                approved: true,
               },
             },
           },
@@ -107,6 +108,7 @@ describe("paid HTTP merchant inspection", () => {
     const body = JSON.stringify({
       merchant_url: "https://localhost",
       agent_id: "agent/test/1",
+      approved: true,
     });
     const challenge = await handle(
       new Request("https://service.example/v1/inspect", {
@@ -138,6 +140,54 @@ describe("paid HTTP merchant inspection", () => {
     expect(response.status).toBe(400);
     expect(response.headers.get("payment-required")).toBeNull();
     expect(inspect).not.toHaveBeenCalled();
+    expect(settle).not.toHaveBeenCalled();
+  });
+
+  it("cannot inspect or settle without explicit approval", async () => {
+    const payer = "0x1111111111111111111111111111111111111111";
+    const settle = vi.fn<FacilitatorClient["settle"]>();
+    const handle = await createPaidInspectHandler({
+      facilitator: {
+        ...facilitator,
+        verify: vi.fn().mockResolvedValue({ isValid: true, payer }),
+        settle,
+      },
+      inspect: vi.fn(),
+      network: "base-sepolia",
+      recipient: "0x0000000000000000000000000000000000000001",
+    });
+    const body = JSON.stringify({
+      merchant_url: "https://merchant.example",
+      agent_id: "agent/test/1",
+      approved: false,
+    });
+    const challenge = await handle(
+      new Request("https://service.example/v1/inspect", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body,
+      }),
+    );
+    const terms = decodePaymentRequiredHeader(
+      challenge.headers.get("payment-required")!,
+    );
+    const payment = encodePaymentSignatureHeader({
+      x402Version: 2,
+      accepted: terms.accepts[0],
+      payload: { authorization: { from: payer } },
+    });
+    const response = await handle(
+      new Request("https://service.example/v1/inspect", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "payment-signature": payment,
+        },
+        body,
+      }),
+    );
+
+    expect(response.status).toBe(400);
     expect(settle).not.toHaveBeenCalled();
   });
 
@@ -173,6 +223,7 @@ describe("paid HTTP merchant inspection", () => {
     const requestUrl = new URL("https://service.example/v1/inspect");
     requestUrl.searchParams.set("merchant_url", "https://merchant.example");
     requestUrl.searchParams.set("agent_id", "agent/test/1");
+    requestUrl.searchParams.set("approved", "true");
     const challenge = await handle(
       new Request(requestUrl, {
         method: "POST",
@@ -205,7 +256,10 @@ describe("paid HTTP merchant inspection", () => {
       network: "eip155:84532",
       transaction,
     });
-    expect(inspect).toHaveBeenCalledWith("https://merchant.example");
+    expect(inspect).toHaveBeenCalledWith(
+      "https://merchant.example",
+      "agent/test/1",
+    );
     expect(observePayment).toHaveBeenCalledWith(
       expect.objectContaining({
         agentHash: expect.stringMatching(/^[a-f0-9]{64}$/),

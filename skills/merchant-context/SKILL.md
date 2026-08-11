@@ -1,6 +1,6 @@
 ---
 name: merchant-context
-description: Resolve sourced merchant facts and safe merchant-owned actions. Use for merchant checks, search, comparison, preflight, or agent-commerce readiness.
+description: Resolve sourced merchant facts and safe merchant-owned actions. Use for merchant checks, search, comparison, preflight, or action selection.
 ---
 
 # Merchant Context

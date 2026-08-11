@@ -3,10 +3,15 @@ import type { MerchantResolution, ResolvedOffer } from "./contracts";
 export interface ComparedOffer {
   origin: string;
   offer: ResolvedOffer;
-  record: Pick<MerchantResolution["record"], "version" | "source_url" | "observed_at" | "expires_at" | "stale">;
+  record: Pick<
+    MerchantResolution["record"],
+    "version" | "source_url" | "observed_at" | "expires_at" | "stale"
+  >;
 }
 
-export function compare_offers(records: readonly MerchantResolution[]): ComparedOffer[] {
+export function compare_offers(
+  records: readonly MerchantResolution[],
+): ComparedOffer[] {
   return records
     .flatMap((resolution) =>
       resolution.offers.map((offer) => ({
@@ -21,7 +26,11 @@ export function compare_offers(records: readonly MerchantResolution[]): Compared
         },
       })),
     )
-    .sort((a, b) => a.origin.localeCompare(b.origin) || a.offer.id.localeCompare(b.offer.id));
+    .sort(
+      (a, b) =>
+        a.origin.localeCompare(b.origin) ||
+        a.offer.id.localeCompare(b.offer.id),
+    );
 }
 
 export const compareOffers = compare_offers;

@@ -22,17 +22,25 @@ import { runPreflightedWebMcpAction } from "./src/preflight-webmcp.mjs";
 const result = await runPreflightedWebMcpAction({
   merchantOrigin: "https://shop.example",
   actionId: "add-to-cart",
+  webMcpTool: "add_to_cart",
   input: { sku: "ABC", quantity: 1 },
   merchantContext: {
-    resolveMerchant: (origin) => mcp.callTool("resolve_merchant", { merchant: origin })
+    resolveMerchant: (origin) =>
+      mcp.callTool("resolve_merchant", { merchant: origin }),
   },
   browserPage: {
-    callWebMcpTool: (name, input) => page.callWebMcpTool(name, input)
+    callWebMcpTool: (name, input) => page.callWebMcpTool(name, input),
   },
-  confirm: ({ action, input }) => showHumanConfirmation({ action, input })
+  confirm: ({ action, input }) => showHumanConfirmation({ action, input }),
 });
 ```
 
-The page tool name comes from the selected safe action's `webmcp_tool` field. Adapt `getActions` if your resolver returns actions through a separate `get_safe_actions` call. Do not add `refresh_merchant` to the default tool set.
+The host maps the selected safe action to a page tool with `webMcpTool`.
+
+Merchant Context does not claim which WebMCP tool implements a merchant action.
+
+Adapt `getActions` if your resolver returns actions through `get_safe_actions`.
+
+Do not add `refresh_merchant` to the default tool set.
 
 See `browser-run.policy.json` for the intended tool policy. Map that policy to the current Browser Run configuration surface when you install it; Cloudflare product APIs can change.

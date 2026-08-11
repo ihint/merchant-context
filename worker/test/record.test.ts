@@ -51,8 +51,7 @@ describe("merchant record normalization", () => {
       "https://shop.example/merchant-context.json",
     ]);
     expect(record.offers[0].price.state).toBe("unknown");
-    expect(record.actions).toHaveLength(1);
-    expect(record.actions[0].url).toBe("https://shop.example/buy");
+    expect(record.actions).toHaveLength(0);
   });
 
   it("binds the canonical origin to the fetched origin", async () => {
@@ -77,5 +76,18 @@ describe("merchant record normalization", () => {
         "https://shop.example",
       ]),
     ).toBe(false);
+  });
+
+  it("keeps the evidence hash stable when only cache expiry changes", async () => {
+    const first = await normalizeMerchantRecord(publicRecord, {
+      fetchedOrigin: "https://shop.example",
+      expiresAt: "2026-08-11T12:00:00Z",
+    });
+    const second = await normalizeMerchantRecord(publicRecord, {
+      fetchedOrigin: "https://shop.example",
+      expiresAt: "2026-08-12T12:00:00Z",
+    });
+
+    expect(first.evidence_hash).toBe(second.evidence_hash);
   });
 });

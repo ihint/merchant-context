@@ -110,14 +110,19 @@ export function preflight(
     }
   }
 
-  const needsConfirmation =
-    selected?.human_confirmation_required === true &&
-    constraints.human_confirmation_available !== true;
-  if (needsConfirmation) reasons.push("The action needs human confirmation.");
+  const confirmationRequired = selected?.human_confirmation_required === true;
+  const confirmationUnavailable =
+    confirmationRequired && constraints.human_confirmation_available === false;
+  if (confirmationUnavailable) {
+    reasons.push("Human confirmation is not available for this action.");
+    hasBlockingReason = true;
+  } else if (confirmationRequired) {
+    reasons.push("The action needs human confirmation.");
+  }
   if (evidence.length === 0) hasUnknownReason = true;
   const decision = hasBlockingReason
     ? "blocked"
-    : needsConfirmation
+    : confirmationRequired
       ? "needs_confirmation"
       : hasUnknownReason
         ? "unknown"
@@ -128,11 +133,11 @@ export function preflight(
     resolution: {
       ...resolution,
       selected_action: selected,
-      approval_required: needsConfirmation,
+      approval_required: confirmationRequired,
     },
     evidence,
     selected_safe_action: selected,
-    approval_required: needsConfirmation,
+    approval_required: confirmationRequired,
     decision,
     reasons,
     attribution_session: selected?.attribution ?? null,
@@ -176,7 +181,8 @@ function hasPriceWithinLimit(
   return known.some(
     (offer) =>
       offer.price.state === "known" &&
-      offer.price.value.currency === maximum.currency &&
+      offer.price.value.currency.toUpperCase() ===
+        maximum.currency.toUpperCase() &&
       offer.price.value.amount <= maximum.amount,
   );
 }

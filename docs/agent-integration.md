@@ -25,15 +25,16 @@ Expected result: the agent calls `resolve_merchant` first, returns sourced facts
 
 ## Install packages
 
-| Client | Package | Status |
-| --- | --- | --- |
-| OpenAI Responses API | [`integrations/openai`](../integrations/openai/) | Format checked; live flow untested |
-| Codex plugin and skill | [`plugins/merchant-context`](../plugins/merchant-context/) and [`skills/merchant-context`](../skills/merchant-context/) | Format checked; install untested |
-| Claude API and Claude Code | [`integrations/claude`](../integrations/claude/) | Format checked; live flow untested |
-| Cursor | [`integrations/cursor`](../integrations/cursor/) | Format checked; live flow untested |
-| Gemini CLI | [`extensions/gemini-cli`](../extensions/gemini-cli/) | Format checked; live flow untested |
-| Generic MCP and HTTP | [`integrations/generic-http`](../integrations/generic-http/) | MCP harness included; live status is in `compatibility.md` |
-| TypeScript | [`packages/typescript`](../packages/typescript/) | Local tests included; live flow untested |
+| Client                 | Package                                                                                                                 | Status                                              |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| OpenAI Responses API   | [`integrations/openai`](../integrations/openai/)                                                                        | Format checked; live flow untested                  |
+| Codex plugin and skill | [`plugins/merchant-context`](../plugins/merchant-context/) and [`skills/merchant-context`](../skills/merchant-context/) | Plugin install and removal passed                   |
+| Claude Code            | [`integrations/claude`](../integrations/claude/)                                                                        | Preview connection and removal passed               |
+| Claude API             | [`integrations/claude`](../integrations/claude/)                                                                        | Format checked; model call untested                 |
+| Cursor                 | [`integrations/cursor`](../integrations/cursor/)                                                                        | Format checked; live flow untested                  |
+| Gemini CLI             | [`extensions/gemini-cli`](../extensions/gemini-cli/)                                                                    | Extension and direct connection passed              |
+| Generic MCP and HTTP   | [`integrations/generic-http`](../integrations/generic-http/)                                                            | Preview resolver and HTTP bridge passed             |
+| TypeScript             | [`packages/typescript`](../packages/typescript/)                                                                        | Unit, tarball install, and preview preflight passed |
 
 Each package states what it sends, which calls are free or paid, where approval applies, how to test it, and how to remove it.
 

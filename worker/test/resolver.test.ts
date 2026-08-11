@@ -75,8 +75,10 @@ describe("resolveMerchant", () => {
     expect(fetcher.mock.calls[0][0]).toBe(
       "https://shop.example/merchant-context.json",
     );
+    expect(fetcher.mock.calls[0][1]).toMatchObject({ redirect: "manual" });
     expect(put).toHaveBeenCalledOnce();
     expect(result.record.cache).toBe("miss");
+    expect(result.record.observed_at).toBe("2026-08-10T12:00:00Z");
   });
 });
 

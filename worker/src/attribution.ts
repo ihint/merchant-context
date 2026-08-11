@@ -36,14 +36,25 @@ const payloadKeys = [
 function toBase64Url(bytes: Uint8Array): string {
   let binary = "";
   for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/u, "");
+  return btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/u, "");
 }
 
 function fromBase64Url(value: string): Uint8Array {
-  if (!/^[A-Za-z0-9_-]+$/u.test(value)) throw new Error("Invalid attribution token");
-  const padded = value.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(value.length / 4) * 4, "=");
+  if (!/^[A-Za-z0-9_-]+$/u.test(value))
+    throw new Error("Invalid attribution token");
+  const padded = value
+    .replace(/-/g, "+")
+    .replace(/_/g, "/")
+    .padEnd(Math.ceil(value.length / 4) * 4, "=");
   try {
-    return Uint8Array.from(atob(padded), (character) => character.charCodeAt(0));
+    const bytes = Uint8Array.from(atob(padded), (character) =>
+      character.charCodeAt(0),
+    );
+    if (toBase64Url(bytes) !== value) throw new Error("non-canonical");
+    return bytes;
   } catch {
     throw new Error("Invalid attribution token");
   }
@@ -58,15 +69,20 @@ async function hmac(secret: string, value: string): Promise<Uint8Array> {
     false,
     ["sign"],
   );
-  return new Uint8Array(await crypto.subtle.sign("HMAC", key, encoder.encode(value)));
+  return new Uint8Array(
+    await crypto.subtle.sign("HMAC", key, encoder.encode(value)),
+  );
 }
 
 export async function privacyPreservingClientId(
   clientIdentifier: string,
   secret: string,
 ): Promise<string> {
-  if (clientIdentifier.length === 0) throw new Error("Client identifier is required");
-  return toBase64Url(await hmac(secret, `merchant-context-client\0${clientIdentifier}`));
+  if (clientIdentifier.length === 0)
+    throw new Error("Client identifier is required");
+  return toBase64Url(
+    await hmac(secret, `merchant-context-client\0${clientIdentifier}`),
+  );
 }
 
 export async function mintMerchantContextSession(
@@ -85,7 +101,10 @@ export async function mintMerchantContextSession(
 
   const payload: MerchantContextSessionPayload = {
     session_id: input.sessionId ?? crypto.randomUUID(),
-    client_id: await privacyPreservingClientId(input.clientIdentifier, input.secret),
+    client_id: await privacyPreservingClientId(
+      input.clientIdentifier,
+      input.secret,
+    ),
     merchant_origin: input.merchantOrigin,
     record_version: input.recordVersion,
     action_id: input.actionId,
@@ -111,10 +130,17 @@ export async function verifyMerchantContextSession(
     throw new Error("Invalid attribution token");
   }
   const expected = await hmac(secret, parts[0]);
-  const supplied = fromBase64Url(parts[1]);
-  if (expected.length !== supplied.length) throw new Error("Invalid attribution signature");
+  let supplied: Uint8Array;
+  try {
+    supplied = fromBase64Url(parts[1]);
+  } catch {
+    throw new Error("Invalid attribution signature");
+  }
+  if (expected.length !== supplied.length)
+    throw new Error("Invalid attribution signature");
   let difference = 0;
-  for (let index = 0; index < expected.length; index += 1) difference |= expected[index] ^ supplied[index];
+  for (let index = 0; index < expected.length; index += 1)
+    difference |= expected[index] ^ supplied[index];
   if (difference !== 0) throw new Error("Invalid attribution signature");
 
   let value: unknown;
@@ -123,27 +149,46 @@ export async function verifyMerchantContextSession(
   } catch {
     throw new Error("Invalid attribution token");
   }
-  if (typeof value !== "object" || value === null || Array.isArray(value)) throw new Error("Invalid attribution payload");
+  if (typeof value !== "object" || value === null || Array.isArray(value))
+    throw new Error("Invalid attribution payload");
   const payload = value as Record<string, unknown>;
   const keys = Object.keys(payload).sort();
-  if (keys.length !== payloadKeys.length || keys.some((key, index) => key !== payloadKeys[index])) {
+  if (
+    keys.length !== payloadKeys.length ||
+    keys.some((key, index) => key !== payloadKeys[index])
+  ) {
     throw new Error("Invalid attribution payload");
   }
   if (
-    typeof payload.session_id !== "string" || payload.session_id.length === 0 ||
-    typeof payload.client_id !== "string" || !/^[A-Za-z0-9_-]{43}$/u.test(payload.client_id) ||
+    typeof payload.session_id !== "string" ||
+    payload.session_id.length === 0 ||
+    typeof payload.client_id !== "string" ||
+    !/^[A-Za-z0-9_-]{43}$/u.test(payload.client_id) ||
     typeof payload.merchant_origin !== "string" ||
-    typeof payload.record_version !== "string" || payload.record_version.length === 0 ||
-    typeof payload.action_id !== "string" || payload.action_id.length === 0 ||
-    typeof payload.issued_at !== "number" || !Number.isInteger(payload.issued_at) ||
-    typeof payload.expires_at !== "number" || !Number.isInteger(payload.expires_at) ||
-    payload.expires_at <= payload.issued_at || payload.expires_at - payload.issued_at > 3600
-  ) throw new Error("Invalid attribution payload");
+    typeof payload.record_version !== "string" ||
+    payload.record_version.length === 0 ||
+    typeof payload.action_id !== "string" ||
+    payload.action_id.length === 0 ||
+    typeof payload.issued_at !== "number" ||
+    !Number.isInteger(payload.issued_at) ||
+    typeof payload.expires_at !== "number" ||
+    !Number.isInteger(payload.expires_at) ||
+    payload.expires_at <= payload.issued_at ||
+    payload.expires_at - payload.issued_at > 3600
+  )
+    throw new Error("Invalid attribution payload");
   let origin: URL;
-  try { origin = new URL(payload.merchant_origin); } catch { throw new Error("Invalid attribution payload"); }
-  if (origin.protocol !== "https:" || origin.origin !== payload.merchant_origin) throw new Error("Invalid attribution payload");
+  try {
+    origin = new URL(payload.merchant_origin);
+  } catch {
+    throw new Error("Invalid attribution payload");
+  }
+  if (origin.protocol !== "https:" || origin.origin !== payload.merchant_origin)
+    throw new Error("Invalid attribution payload");
   const current = Math.floor(now.getTime() / 1000);
-  if (payload.issued_at > current + 60) throw new Error("Attribution token is not yet valid");
-  if (payload.expires_at <= current) throw new Error("Attribution token has expired");
+  if (payload.issued_at > current + 60)
+    throw new Error("Attribution token is not yet valid");
+  if (payload.expires_at <= current)
+    throw new Error("Attribution token has expired");
   return payload as unknown as MerchantContextSessionPayload;
 }

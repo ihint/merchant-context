@@ -2,7 +2,9 @@
 
 Use `mcp.json` with any Streamable HTTP MCP client. Allow only `resolve_merchant`, `search_merchants`, `compare_offers`, `get_safe_actions`, and `preflight` when the client supports tool filters.
 
-For direct HTTP, `resolve.sh` posts a public merchant URL to the free resolver. The direct route is untested live.
+For direct HTTP, `resolve.sh` posts a public merchant URL to the free resolver.
+
+The preview direct route and MCP harness passed on 2026-08-11.
 
 Test with `Resolve https://merchant.atomandbits.com. Cite sources and freshness. Do not refresh or act.` Expected: sourced free resolution, no paid call, and no action.
 

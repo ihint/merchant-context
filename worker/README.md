@@ -1,20 +1,24 @@
 # Merchant Context MCP worker
 
-This Worker serves a public Streamable HTTP MCP endpoint with two tools:
+This Worker serves a public Streamable HTTP MCP endpoint.
 
-- `get_service_info` is free.
-- `inspect_merchant` costs $0.01 USDC through x402 on Base.
+- `resolve_merchant`, `search_merchants`, `compare_offers`, `get_safe_actions`, and `preflight` are free.
+- `check_merchant` is a free site diagnostic.
+- `refresh_merchant` costs $0.01 USDC through x402 on Base.
+- `inspect_merchant` is a paid compatibility alias.
 
 The paid tool checks a fixed set of files on one public HTTPS origin. It does not crawl arbitrary
 links or return page bodies.
 
-The Worker also exposes `POST /v1/inspect` for wallets and agents that support standard HTTP x402.
-It takes the same `merchant_url` and `agent_id` fields, charges the same $0.01 USDC price on Base,
+The Worker exposes free direct HTTP routes under `/v1`.
+
+It also exposes `POST /v1/refresh` for wallets and agents that support standard HTTP x402.
+It takes `merchant_url`, `agent_id`, and `approved: true`, charges $0.01 USDC on Base,
 and returns the inspection as JSON with the settlement receipt in the `PAYMENT-RESPONSE` header.
-Clients may send the two fields as JSON or as query parameters when their x402 discovery step does
+Clients may send the three fields as JSON or as query parameters when their x402 discovery step does
 not preserve request bodies.
 
-Production beta: `https://api.merchant.atomandbits.com/v1/inspect`
+Production: `https://api.merchant.atomandbits.com/v1/refresh`
 
 ## Run the checks
 
@@ -53,6 +57,8 @@ The service fails closed until all of these exist:
 - `X402_NETWORK=base`
 - `X402_RECIPIENT`, a public 20-byte EVM address
 - `USAGE_DB`, a D1 database with `migrations/0001_verified_calls.sql` applied
+- `ATTRIBUTION_SIGNING_KEY`, a Worker secret
+- `MERCHANT_RECEIPT_SECRET`, a Worker secret shared only with approved merchant receipt issuers
 - `RATE_LIMITER`, set to 60 MCP requests per source IP each minute
 
 The x402 facilitator verifies payment signatures, prevents authorization replay, settles USDC, and

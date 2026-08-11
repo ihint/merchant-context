@@ -93,6 +93,7 @@ export async function normalizeMerchantRecord(
   const allowedOrigins = new Set([fetchedOrigin, ...aliases]);
   const actions = parsed.actions.flatMap((action, index) => {
     if (!isMerchantOwnedAction(action.url, allowedOrigins)) return [];
+    if (action.method !== "GET") return [];
     const expires = expiresAt;
     return [
       {
@@ -101,8 +102,7 @@ export async function normalizeMerchantRecord(
         method: action.method,
         url: action.url,
         required_inputs: [] as ActionInput[],
-        allowed_authority:
-          action.method === "GET" ? ("navigate" as const) : ("submit" as const),
+        allowed_authority: "navigate" as const,
         human_confirmation_required: action.human_confirmation_required,
         expires_at: expires,
         idempotency: {
@@ -165,7 +165,7 @@ export async function normalizeMerchantRecord(
 
   return {
     ...normalizedWithoutHash,
-    evidence_hash: await stableEvidenceHash(normalizedWithoutHash),
+    evidence_hash: await stableEvidenceHash(parsed),
   };
 }
 

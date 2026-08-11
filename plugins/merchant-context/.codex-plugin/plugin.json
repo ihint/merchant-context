@@ -2,6 +2,28 @@
   "name": "merchant-context",
   "version": "0.3.0",
   "description": "Resolve sourced merchant facts before agent commerce actions",
+  "author": {
+    "name": "Atom & Bits",
+    "url": "https://atomandbits.com"
+  },
+  "homepage": "https://merchant.atomandbits.com",
+  "repository": "https://github.com/ihint/merchant-context",
+  "license": "MIT",
+  "keywords": ["merchant", "preflight", "mcp", "agentic-commerce"],
   "skills": "./skills/",
-  "mcpServers": "./.mcp.json"
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Merchant Context",
+    "shortDescription": "Resolve merchant facts before action",
+    "longDescription": "Resolve sourced merchant facts, stale and unknown fields, safe merchant-owned actions, approval rules, and attribution before an agent acts. The default policy uses free resolver tools. Paid refresh needs explicit human approval.",
+    "developerName": "Atom & Bits",
+    "category": "Developer Tools",
+    "capabilities": ["Read"],
+    "websiteURL": "https://merchant.atomandbits.com",
+    "supportURL": "https://github.com/ihint/merchant-context/issues",
+    "defaultPrompt": [
+      "Resolve this merchant before relying on its facts or starting an action"
+    ],
+    "screenshots": []
+  }
 }

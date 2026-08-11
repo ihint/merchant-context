@@ -22,11 +22,20 @@ describe("public HTTP surface", () => {
         url: "https://merchant.atomandbits.com/mcp",
       },
       http: {
-        method: "POST",
-        url: "https://merchant.atomandbits.com/v1/inspect",
-        price_usd: 0.01,
-        payment: "x402",
-        network: "base",
+        free: {
+          resolve: {
+            method: "POST",
+            url: "https://merchant.atomandbits.com/v1/resolve",
+          },
+        },
+        paid_refresh: {
+          method: "POST",
+          url: "https://merchant.atomandbits.com/v1/refresh",
+          price_usd: 0.01,
+          payment: "x402",
+          network: "base",
+          approval_required: true,
+        },
       },
       ucp: {
         profile_url: "https://merchant.atomandbits.com/.well-known/ucp",
@@ -34,9 +43,30 @@ describe("public HTTP surface", () => {
         capabilities: [],
       },
       tools: [
-        { name: "get_service_info", price_usd: 0, payment: "none" },
-        { name: "check_merchant", price_usd: 0, payment: "none" },
-        { name: "inspect_merchant", price_usd: 0.01, payment: "x402" },
+        { name: "resolve_merchant", price_usd: 0, payment: "none" },
+        { name: "search_merchants", price_usd: 0, payment: "none" },
+        { name: "compare_offers", price_usd: 0, payment: "none" },
+        { name: "get_safe_actions", price_usd: 0, payment: "none" },
+        { name: "preflight", price_usd: 0, payment: "none" },
+        {
+          name: "check_merchant",
+          price_usd: 0,
+          payment: "none",
+          role: "diagnostic",
+        },
+        {
+          name: "refresh_merchant",
+          price_usd: 0.01,
+          payment: "x402",
+          approval_required: true,
+        },
+        {
+          name: "inspect_merchant",
+          price_usd: 0.01,
+          payment: "x402",
+          approval_required: true,
+          role: "compatibility_alias",
+        },
       ],
     });
   });

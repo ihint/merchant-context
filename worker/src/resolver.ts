@@ -98,7 +98,7 @@ async function fetchFreeRecord(
 ): Promise<NormalizedMerchantRecord | null> {
   const sourceUrl = `${origin}/merchant-context.json`;
   const response = await (dependencies.fetcher ?? fetch)(sourceUrl, {
-    redirect: "error",
+    redirect: "manual",
     signal: AbortSignal.timeout(5_000),
     headers: { accept: "application/json" },
   });
@@ -107,12 +107,10 @@ async function fetchFreeRecord(
   if (Number.isFinite(contentLength) && contentLength > 512 * 1024) return null;
   const body = await response.text();
   if (new TextEncoder().encode(body).byteLength > 512 * 1024) return null;
-  const observedAt = now.toISOString();
   const ttl = dependencies.cacheTtlSeconds ?? 3600;
   return normalizeMerchantRecord(JSON.parse(body) as unknown, {
     fetchedOrigin: origin,
     sourceUrl,
-    observedAt,
     expiresAt: new Date(now.getTime() + ttl * 1000).toISOString(),
   });
 }

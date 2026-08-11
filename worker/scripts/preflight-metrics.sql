@@ -26,3 +26,31 @@ SELECT
   COUNT(DISTINCT CASE WHEN event_name = 'action_completed' AND verified = 1 THEN session_id END) AS verified_completed_sessions
 FROM merchant_preflight_events
 WHERE provenance != 'internal';
+
+-- Cache use and free resolver latency. Internal smoke runs stay separate.
+SELECT
+  cache_status,
+  COUNT(*) AS calls,
+  ROUND(AVG(duration_ms), 1) AS average_duration_ms,
+  MAX(duration_ms) AS maximum_duration_ms
+FROM merchant_preflight_measurements
+WHERE operation = 'resolve_merchant'
+  AND internal = 0
+GROUP BY cache_status
+ORDER BY cache_status;
+
+-- Weekly outside clients that returned in more than one UTC week.
+SELECT COUNT(*) AS weekly_repeat_outside_clients
+FROM (
+  SELECT client_id
+  FROM merchant_preflight_events
+  WHERE provenance != 'internal'
+  GROUP BY client_id
+  HAVING COUNT(DISTINCT strftime('%Y-%W', occurred_at)) > 1
+);
+
+-- Paid refresh evidence stays separate from service and outcome revenue.
+SELECT
+  COUNT(*) AS paid_refreshes,
+  SUM(CASE WHEN settled_at IS NOT NULL THEN 1 ELSE 0 END) AS settled_refreshes
+FROM verified_calls;

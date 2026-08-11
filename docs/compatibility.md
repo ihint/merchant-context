@@ -2,19 +2,31 @@
 
 Checked on 2026-08-11 against the contract and current official client formats.
 
-| Surface | Install format | Status |
-| --- | --- | --- |
-| Streamable HTTP MCP | Public `/mcp` URL | Harness added; live resolver untested |
-| Direct HTTP | JSON `POST` under `/v1` | Client added; live resolver untested |
-| OpenAI Responses API | Remote MCP tool with an allowlist | Format checked; live call untested |
-| Codex | Plugin manifest, MCP config, and skill | Format checked; install untested |
-| Claude API | Messages API MCP connector | Format checked; live call untested |
-| Claude Code | `.mcp.json` HTTP server | Format checked; install untested |
-| Cursor | `.cursor/mcp.json` and install-link data | Format checked; install untested |
-| Gemini CLI | Extension manifest or `settings.json` | Format checked; install untested |
-| TypeScript | Fetch-based client | Local tests added; package install untested |
+| Surface              | Install format                                   | Status                                                                |
+| -------------------- | ------------------------------------------------ | --------------------------------------------------------------------- |
+| Streamable HTTP MCP  | Public `/mcp` URL                                | Preview tool list and free resolver passed                            |
+| Direct HTTP          | JSON `POST` under `/v1`                          | Preview resolve, preflight, cache, and x402 terms passed              |
+| OpenAI Responses API | Remote MCP tool with an allowlist                | Format checked; live call untested                                    |
+| Codex                | Plugin manifest, MCP config, and skill           | Plugin install and removal passed with Codex CLI 0.146.0              |
+| Claude API           | Messages API MCP connector                       | Format checked; live call untested                                    |
+| Claude Code          | `.mcp.json` HTTP server                          | Preview connection and removal passed with Claude Code 2.1.227        |
+| Cursor               | `.cursor/mcp.json` and install-link data         | Format checked; install untested                                      |
+| Gemini CLI           | Extension manifest and direct MCP setup          | Extension and direct preview connection passed with Gemini CLI 0.54.4 |
+| TypeScript           | Fetch-based client                               | Unit, tarball install, and preview preflight passed                   |
+| Cloudflare bridge    | Service binding, Browser Run adapter, and WebMCP | Preview bridge and receipt flow passed; Browser Run tests passed      |
+| Cloudflare OS        | Draft blueprint                                  | Draft only; no stable public install contract found                   |
 
-“Format checked” means the files match the cited official format. It does not mean the package has passed a live client test. Treat all rows marked untested as untested.
+“Format checked” means the files match the cited official format.
+
+It does not mean the package has passed a live client test.
+
+Treat each row marked untested as untested.
+
+The OpenAI and Claude API model calls were not run because they can cost money.
+
+The Cursor Add to Cursor flow still needs a graphical install test.
+
+Cloudflare Browser Run was not started because it can cost money.
 
 ## Safe live check
 
@@ -50,9 +62,9 @@ The MCP server receives the tool name and tool input. The resolver input include
 
 ## Sources
 
-- [OpenAI remote MCP](https://platform.openai.com/docs/guides/tools-remote-mcp)
+- [OpenAI remote MCP](https://developers.openai.com/api/docs/guides/tools-connectors-mcp)
 - [Codex plugins](https://developers.openai.com/plugins/build/plugins)
-- [Anthropic MCP connector](https://docs.anthropic.com/en/docs/agents-and-tools/mcp-connector)
+- [Anthropic MCP connector](https://platform.claude.com/docs/en/agents-and-tools/mcp-connector)
 - [Claude Code MCP](https://docs.anthropic.com/en/docs/claude-code/mcp)
 - [Cursor MCP](https://docs.cursor.com/context/model-context-protocol)
 - [Gemini CLI extension reference](https://geminicli.com/docs/extensions/reference/)

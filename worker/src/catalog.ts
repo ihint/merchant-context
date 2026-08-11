@@ -45,7 +45,9 @@ export class D1Catalog implements Catalog {
   async get(origin: string): Promise<MerchantResolution | null> {
     const normalized = normalizeOrigin(origin);
     const row = await this.db
-      .prepare(`SELECT origin, resolution_json FROM ${this.table} WHERE origin = ?1`)
+      .prepare(
+        `SELECT origin, resolution_json FROM ${this.table} WHERE origin = ?1`,
+      )
       .bind(normalized)
       .first<StoredRow>();
     return row ? parseResolution(row.resolution_json) : null;
@@ -53,9 +55,13 @@ export class D1Catalog implements Catalog {
 
   async list(): Promise<MerchantResolution[]> {
     const result = await this.db
-      .prepare(`SELECT origin, resolution_json FROM ${this.table} ORDER BY origin ASC`)
+      .prepare(
+        `SELECT origin, resolution_json FROM ${this.table} ORDER BY origin ASC`,
+      )
       .all<StoredRow>();
-    return (result.results ?? []).map((row) => parseResolution(row.resolution_json));
+    return (result.results ?? []).map((row) =>
+      parseResolution(row.resolution_json),
+    );
   }
 
   async put(resolution: MerchantResolution): Promise<void> {
@@ -65,7 +71,13 @@ export class D1Catalog implements Catalog {
         `INSERT INTO ${this.table} (origin, resolution_json) VALUES (?1, ?2) ` +
           "ON CONFLICT(origin) DO UPDATE SET resolution_json = excluded.resolution_json",
       )
-      .bind(origin, JSON.stringify({ ...resolution, merchant: { ...resolution.merchant, origin } }))
+      .bind(
+        origin,
+        JSON.stringify({
+          ...resolution,
+          merchant: { ...resolution.merchant, origin },
+        }),
+      )
       .run();
   }
 
@@ -89,7 +101,9 @@ export class MemoryCatalog implements Catalog {
   }
 
   async list(): Promise<MerchantResolution[]> {
-    return [...this.records.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([, value]) => value);
+    return [...this.records.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([, value]) => value);
   }
 
   async put(resolution: MerchantResolution): Promise<void> {
@@ -102,18 +116,23 @@ export class MemoryCatalog implements Catalog {
 
   private store(resolution: MerchantResolution): void {
     const origin = normalizeOrigin(resolution.merchant.origin);
-    this.records.set(origin, { ...resolution, merchant: { ...resolution.merchant, origin } });
+    this.records.set(origin, {
+      ...resolution,
+      merchant: { ...resolution.merchant, origin },
+    });
   }
 }
 
 export function normalizeOrigin(origin: string): string {
   const url = new URL(origin);
-  if (url.protocol !== "https:" || url.username || url.password) throw new Error("Catalog origins must be public HTTPS origins");
+  if (url.protocol !== "https:" || url.username || url.password)
+    throw new Error("Catalog origins must be public HTTPS origins");
   return url.origin.toLowerCase();
 }
 
 function parseResolution(json: string): MerchantResolution {
   const value: unknown = JSON.parse(json);
-  if (!value || typeof value !== "object" || !("merchant" in value)) throw new Error("Invalid catalog record");
+  if (!value || typeof value !== "object" || !("merchant" in value))
+    throw new Error("Invalid catalog record");
   return value as MerchantResolution;
 }
