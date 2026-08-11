@@ -1,0 +1,16 @@
+{
+  "$schema": "./browser-run.policy.schema.json",
+  "name": "merchant-context-preflight",
+  "description": "Reference policy for a Browser Run host. This file does not deploy or enable Browser Run.",
+  "default_tools": [
+    "resolve_merchant",
+    "search_merchants",
+    "compare_offers",
+    "get_safe_actions",
+    "preflight"
+  ],
+  "excluded_default_tools": ["refresh_merchant", "inspect_merchant"],
+  "before_page_action": "resolve_merchant",
+  "forward_to_webmcp_input": ["merchant_context_session"],
+  "human_confirmation_for_consequential_actions": true
+}

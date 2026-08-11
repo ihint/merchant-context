@@ -1,0 +1,21 @@
+{
+  "draft": true,
+  "kind": "MerchantContextCloudflareOSBlueprintDraft",
+  "contract_version": "2026-08-11",
+  "notice": "Reference policy only. No stable public Cloudflare OS Gatekeeper/Blueprint install contract is claimed.",
+  "gatekeeper": {
+    "before": ["merchant_fact", "merchant_action"],
+    "tool": "resolve_merchant",
+    "require_success": true
+  },
+  "tools": {
+    "default": ["resolve_merchant", "search_merchants", "compare_offers", "get_safe_actions", "preflight"],
+    "not_default": ["refresh_merchant", "inspect_merchant"]
+  },
+  "webmcp": {
+    "input_fields": ["merchant_context_session"]
+  },
+  "actions": {
+    "consequential": { "human_confirmation": "required" }
+  }
+}

@@ -8,7 +8,8 @@ describe("Wrangler routes", () => {
     const configPath = fileURLToPath(
       new URL("../wrangler.jsonc", import.meta.url),
     );
-    const config = JSON.parse(readFileSync(configPath, "utf8"));
+    const configText = readFileSync(configPath, "utf8");
+    const config = JSON.parse(configText.replace(/,\s*([}\]])/g, "$1"));
 
     expect(config.workers_dev).toBe(true);
     expect(config.routes).toContainEqual({

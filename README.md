@@ -1,6 +1,6 @@
 # Merchant Context
 
-Merchant Context is an open project for making offers easier for buyer agents to find, compare, and act on.
+Merchant Context is an open merchant preflight for agent builders.
 
 It starts with a practical question:
 
@@ -8,7 +8,7 @@ It starts with a practical question:
 
 This repo contains:
 
-- an [agentic commerce readiness checklist](CHECKLIST.md);
+- a [merchant publishing checklist](CHECKLIST.md);
 - a [draft merchant-context schema](schema/merchant-context.schema.json);
 - a [worked SaaS example](examples/saas.json); and
 - a [map of the main commerce and discovery standards](docs/protocol-map.md).
@@ -31,15 +31,15 @@ The UCP profile declares no services, checkout capabilities, or payment handlers
 
 The goal is to give merchants one testable context layer that can map to those systems as they mature.
 
-Agent and framework builders can follow the
-[first 100 paid integrations](https://github.com/ihint/merchant-context/issues/6). The issue states
-the launch gates and tracks verified integrations.
+No outside adoption is claimed from internal tests, registry views, repository activity, or self-funded payments.
 
-## Paid beta endpoint
+## Agent endpoints
 
 - MCP: `https://api.merchant.atomandbits.com/mcp`
-- Free MCP tool: `check_merchant`
-- HTTP x402: `POST https://api.merchant.atomandbits.com/v1/inspect`
+- Free MCP tool: `resolve_merchant`
+- Free HTTP: `POST https://api.merchant.atomandbits.com/v1/resolve`
+- Paid MCP tool: `refresh_merchant`
+- Paid HTTP x402: `POST https://api.merchant.atomandbits.com/v1/refresh`
 - Price: $0.01 USDC on Base
 - First verified settlement: [Base transaction `0x2f0f…57af`](https://basescan.org/tx/0x2f0fcf185021b68c827d5668f5d55481ca9d1f768b5e77b9d300e12b604f57af)
 
@@ -62,11 +62,14 @@ The remote MCP endpoint works with clients that support Streamable HTTP:
 https://api.merchant.atomandbits.com/mcp
 ```
 
-Start with `check_merchant`.
-It is free and does not make a payment.
+Start with `resolve_merchant`.
+
+It is free.
+
+A cache hit makes no merchant fetch and no paid inspection call.
 
 See the [agent integration guide](docs/agent-integration.md) for Codex, Claude Code,
-Gemini CLI, Cursor, VS Code, and the OpenAI Responses API.
+Gemini CLI, Cursor, and the OpenAI Responses API.
 
 Agents that support the open Agent Skills format can use
 [`skills/merchant-context`](skills/merchant-context/SKILL.md).
@@ -84,10 +87,15 @@ Agents that support the open Agent Skills format can use
 
 The [`worker`](worker) directory contains the hosted MCP service under test. It exposes:
 
-- `get_service_info`, a free tool that states the checks, price, payment network, and source;
-- `check_merchant`, a free tool that returns the score and pass/fail checks without detailed evidence;
-- `inspect_merchant`, a $0.01 x402 tool that checks six fixed public discovery paths;
-- `POST /v1/inspect`, the same $0.01 inspection through standard HTTP x402 clients; and
+- `resolve_merchant`, a free sourced merchant record with freshness, unknowns, safe actions, and attribution;
+- `search_merchants`, a neutral search over cached sourced records;
+- `compare_offers`, a sourced comparison that keeps unknown values;
+- `get_safe_actions`, a merchant-owned action handoff with approval and recovery rules;
+- `preflight`, the reusable resolution and action gate;
+- `check_merchant`, a free merchant-site diagnostic;
+- `refresh_merchant`, a $0.01 x402 fresh inspection that needs explicit approval;
+- `inspect_merchant`, a first-release compatibility alias for paid refresh;
+- direct HTTP routes under `/v1`; and
 - `/.well-known/merchant-context`, a public service record for agents and registries.
 
 The inspector accepts public HTTPS origins only. It blocks local and IP targets, checks each

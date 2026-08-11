@@ -16,7 +16,10 @@ import type { SettlementObservation } from "./metrics";
 import { buildPaymentObservation, type PaymentObservation } from "./mcp";
 import { settlementObservationFromReceipt } from "./settlement";
 
-type Inspect = (merchantUrl: string) => Promise<{ origin: string }>;
+type Inspect = (
+  merchantUrl: string,
+  agentId: string,
+) => Promise<{ origin: string }>;
 type PaymentObserver = (observation: PaymentObservation) => Promise<void>;
 type SettlementObserver = (observation: SettlementObservation) => Promise<void>;
 
@@ -27,17 +30,19 @@ interface PaidInspectOptions {
   observePayment?: PaymentObserver;
   observeSettlement?: SettlementObserver;
   recipient: `0x${string}`;
+  path?: "/v1/refresh" | "/v1/inspect";
 }
 
 export async function createPaidInspectHandler(
   options: PaidInspectOptions,
 ): Promise<(request: Request) => Promise<Response>> {
   const network = options.network === "base" ? "eip155:8453" : "eip155:84532";
+  const path = options.path ?? "/v1/inspect";
   const resourceServer = new x402ResourceServer(options.facilitator)
     .register("eip155:*", new ExactEvmScheme())
     .registerExtension(bazaarResourceServerExtension);
   const httpServer = new x402HTTPResourceServer(resourceServer, {
-    "POST /v1/inspect": {
+    [`POST ${path}`]: {
       accepts: {
         scheme: "exact",
         network,
@@ -45,16 +50,17 @@ export async function createPaidInspectHandler(
         price: "$0.01",
       },
       description:
-        "Inspect a merchant's public discovery and commerce files for buyer agents",
+        "Refresh sourced merchant evidence after explicit human approval",
       mimeType: "application/json",
       serviceName: "Merchant Context",
-      tags: ["merchant", "agentic-commerce", "discovery", "readiness"],
+      tags: ["merchant", "agentic-commerce", "evidence", "freshness"],
       iconUrl: "https://merchant.atomandbits.com/favicon.svg",
       extensions: declareDiscoveryExtension({
         bodyType: "json",
         input: {
           merchant_url: "https://merchant.atomandbits.com",
           agent_id: "merchant-context-bazaar",
+          approved: true,
         },
         inputSchema: {
           properties: {
@@ -70,8 +76,13 @@ export async function createPaidInspectHandler(
               description:
                 "Stable, non-secret identifier for the calling agent",
             },
+            approved: {
+              type: "boolean",
+              const: true,
+              description: "Explicit human approval for this priced refresh",
+            },
           },
-          required: ["merchant_url", "agent_id"],
+          required: ["merchant_url", "agent_id", "approved"],
           additionalProperties: false,
         },
         output: {
@@ -126,7 +137,10 @@ export async function createPaidInspectHandler(
       }
 
       try {
-        const inspection = await options.inspect(input.merchant_url);
+        const inspection = await options.inspect(
+          input.merchant_url,
+          input.agent_id,
+        );
         const paymentToken =
           request.headers.get("payment-signature") ??
           request.headers.get("x-payment");
@@ -185,15 +199,21 @@ function invalidInputResponse(): Response {
 
 async function paidInspectInput(request: Request): Promise<{
   agent_id: string;
+  approved: true;
   merchant_url: string;
 }> {
   const url = new URL(request.url);
   const queryAgentId = url.searchParams.get("agent_id");
   const queryMerchantUrl = url.searchParams.get("merchant_url");
+  const queryApproved = url.searchParams.get("approved");
   let value: unknown;
 
   if (queryAgentId !== null && queryMerchantUrl !== null) {
-    value = { agent_id: queryAgentId, merchant_url: queryMerchantUrl };
+    value = {
+      agent_id: queryAgentId,
+      merchant_url: queryMerchantUrl,
+      approved: queryApproved === "true",
+    };
   } else {
     value = (await request.clone().json()) as unknown;
   }
@@ -203,13 +223,15 @@ async function paidInspectInput(request: Request): Promise<{
     typeof value.agent_id !== "string" ||
     value.agent_id.length < 3 ||
     value.agent_id.length > 128 ||
-    typeof value.merchant_url !== "string"
+    typeof value.merchant_url !== "string" ||
+    value.approved !== true
   ) {
     throw new Error("Paid inspection input is invalid");
   }
 
   return {
     agent_id: value.agent_id,
+    approved: true,
     merchant_url: normalizePublicOrigin(value.merchant_url),
   };
 }

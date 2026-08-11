@@ -1,0 +1,24 @@
+{
+  "status": "mapping_only",
+  "checked_at": "2026-08-11",
+  "merchant_context_contract": "2026-08-11",
+  "ucp_profile_version": "2026-04-08",
+  "claims_no_ucp_service": true,
+  "field_map": {
+    "merchant.origin": "business identity origin",
+    "offers[].canonical_url": "catalog item or offer URL",
+    "offers[].price": "sourced price input",
+    "offers[].availability": "sourced availability input",
+    "policies[]": "linked policy input",
+    "actions[].url": "merchant-owned handoff URL",
+    "actions[].required_inputs": "action input declaration",
+    "actions[].human_confirmation_required": "host approval policy",
+    "actions[].attribution.token": "UCP request metadata merchant_context_session where the host permits custom metadata"
+  },
+  "not_mapped": [
+    "checkout execution",
+    "payment handler",
+    "order management",
+    "identity linking"
+  ]
+}

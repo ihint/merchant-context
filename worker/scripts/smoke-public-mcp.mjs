@@ -10,6 +10,12 @@ const merchantUrl =
 const expectedTools = [
   "get_service_info",
   "check_merchant",
+  "resolve_merchant",
+  "search_merchants",
+  "compare_offers",
+  "get_safe_actions",
+  "preflight",
+  "refresh_merchant",
   "inspect_merchant",
 ];
 
@@ -29,8 +35,11 @@ try {
   }
 
   const result = await client.callTool({
-    name: "check_merchant",
-    arguments: { merchant_url: merchantUrl },
+    name: "resolve_merchant",
+    arguments: {
+      merchant_url: merchantUrl,
+      client_id: "internal/public-smoke",
+    },
   });
   const content = result.content;
 
@@ -38,22 +47,21 @@ try {
     throw new Error("Free check returned no text result");
   }
 
-  const report = JSON.parse(content[0].text);
+  const resolution = JSON.parse(content[0].text);
 
   if (
-    report.origin !== new URL(merchantUrl).origin ||
-    typeof report.summary?.score !== "number" ||
-    !Array.isArray(report.checks) ||
-    report.checks.length !== 6
+    resolution.merchant?.origin !== new URL(merchantUrl).origin ||
+    !["hit", "miss", "stale_hit"].includes(resolution.record?.cache) ||
+    typeof resolution.record?.evidence_hash !== "string"
   ) {
-    throw new Error("Free check returned an invalid report");
+    throw new Error("Free resolver returned an invalid record");
   }
 
   console.log(
     JSON.stringify({
       endpoint: endpoint.origin + endpoint.pathname,
-      merchant: report.origin,
-      score: report.summary.score,
+      merchant: resolution.merchant.origin,
+      cache: resolution.record.cache,
       tools: toolNames,
     }),
   );

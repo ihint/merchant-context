@@ -7,6 +7,7 @@ import {
   createMerchantContextServer,
   paymentConfigFromEnv,
 } from "../src/mcp";
+import type { MerchantService } from "../src/service";
 
 describe("merchant context MCP server", () => {
   const closeCallbacks: Array<() => Promise<void>> = [];
@@ -39,18 +40,24 @@ describe("merchant context MCP server", () => {
     expect(result.tools.map((tool) => tool.name)).toEqual([
       "get_service_info",
       "check_merchant",
+      "resolve_merchant",
+      "search_merchants",
+      "compare_offers",
+      "get_safe_actions",
+      "preflight",
+      "refresh_merchant",
       "inspect_merchant",
     ]);
-    expect(result.tools[1].annotations).toMatchObject({
+    expect(result.tools[2].annotations).toMatchObject({
       readOnlyHint: true,
       openWorldHint: true,
     });
-    expect(result.tools[2]._meta).toMatchObject({
+    expect(result.tools[7]._meta).toMatchObject({
       "agents-x402/paymentRequired": true,
       "agents-x402/priceUSD": 0.01,
     });
-    expect(result.tools[2].annotations).toMatchObject({
-      readOnlyHint: true,
+    expect(result.tools[7].annotations).toMatchObject({
+      readOnlyHint: false,
       openWorldHint: true,
     });
   });
@@ -96,13 +103,55 @@ describe("merchant context MCP server", () => {
       origin: "https://merchant.example",
       summary: { passed: 2, total: 6, score: 33 },
       full_report: {
-        tool: "inspect_merchant",
+        tool: "refresh_merchant",
         price_usd: 0.01,
         payment: "x402",
       },
     });
     expect(payload.checks).toHaveLength(6);
     expect(payload).not.toHaveProperty("resources");
+  });
+
+  it("returns action attribution in MCP metadata", async () => {
+    const service = {
+      resolve: vi.fn().mockResolvedValue({
+        merchant: { origin: "https://merchant.example" },
+        actions: [
+          {
+            id: "learn-more-1",
+            attribution: {
+              token: "signed-session",
+              expires_at: "2026-08-11T12:10:00Z",
+            },
+          },
+        ],
+      }),
+    } as unknown as MerchantService;
+    const server = createMerchantContextServer(
+      {
+        network: "base-sepolia",
+        recipient: "0x0000000000000000000000000000000000000001",
+      },
+      service,
+    );
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    const [clientTransport, serverTransport] =
+      InMemoryTransport.createLinkedPair();
+    await Promise.all([
+      server.connect(serverTransport),
+      client.connect(clientTransport),
+    ]);
+    closeCallbacks.push(
+      () => client.close(),
+      () => server.close(),
+    );
+
+    const result = await client.callTool({
+      name: "resolve_merchant",
+      arguments: { merchant_url: "https://merchant.example" },
+    });
+
+    expect(result._meta?.["merchant-context/session"]).toBe("signed-session");
   });
 
   it("fails closed when payment settlement is not configured", () => {
@@ -174,10 +223,11 @@ describe("merchant context MCP server", () => {
     );
 
     const result = await client.callTool({
-      name: "inspect_merchant",
+      name: "refresh_merchant",
       arguments: {
         merchant_url: "https://merchant.example",
         agent_id: "agent/test/1",
+        approved: true,
       },
     });
 

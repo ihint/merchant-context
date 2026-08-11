@@ -165,17 +165,21 @@ async function verifyEndpoint(endpoint) {
   if (
     !serviceResponse.ok ||
     service?.mcp?.url !== new URL("/mcp", endpoint).toString() ||
-    service?.http?.url !== new URL("/v1/inspect", endpoint).toString()
+    service?.http?.free?.resolve?.url !==
+      new URL("/v1/resolve", endpoint).toString() ||
+    service?.http?.paid_refresh?.url !==
+      new URL("/v1/refresh", endpoint).toString()
   ) {
     throw new Error("Public service record is invalid");
   }
 
-  const httpChallenge = await fetch(new URL("/v1/inspect", endpoint), {
+  const httpChallenge = await fetch(new URL("/v1/refresh", endpoint), {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
       merchant_url: "https://merchant.atomandbits.com",
       agent_id: "merchant-context-deploy-check",
+      approved: true,
     }),
     signal: AbortSignal.timeout(10_000),
   });
@@ -213,17 +217,24 @@ async function verifyEndpoint(endpoint) {
 
     if (
       !names.includes("get_service_info") ||
+      !names.includes("resolve_merchant") ||
+      !names.includes("search_merchants") ||
+      !names.includes("compare_offers") ||
+      !names.includes("get_safe_actions") ||
+      !names.includes("preflight") ||
       !names.includes("check_merchant") ||
+      !names.includes("refresh_merchant") ||
       !names.includes("inspect_merchant")
     ) {
       throw new Error("MCP tool list is incomplete");
     }
 
     const challenge = await client.callTool({
-      name: "inspect_merchant",
+      name: "refresh_merchant",
       arguments: {
         merchant_url: "https://merchant.atomandbits.com",
         agent_id: "merchant-context-deploy-check",
+        approved: true,
       },
     });
     const paymentError = challenge._meta?.["x402/error"];

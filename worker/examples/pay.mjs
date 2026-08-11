@@ -31,10 +31,11 @@ const client = withX402Client(
 try {
   await client.connect(new StreamableHTTPClientTransport(new URL(endpoint)));
   const result = await client.callTool(null, {
-    name: "inspect_merchant",
+    name: "refresh_merchant",
     arguments: {
       merchant_url: merchantUrl,
       agent_id: agentId,
+      approved: true,
     },
   });
 

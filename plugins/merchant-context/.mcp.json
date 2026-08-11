@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "merchant-context": {
+      "type": "http",
+      "url": "https://api.merchant.atomandbits.com/mcp",
+      "note": "Resolve sourced merchant facts before action. Paid refresh needs explicit human approval."
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "merchant-context-cloudflare-os-draft-adapter",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node --test" }
+}

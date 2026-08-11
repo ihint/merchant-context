@@ -1,0 +1,19 @@
+{
+  "name": "merchant-context",
+  "version": "0.3.0",
+  "description": "Resolve sourced merchant facts before agent commerce actions",
+  "mcpServers": {
+    "merchant-context": {
+      "httpUrl": "https://api.merchant.atomandbits.com/mcp",
+      "includeTools": [
+        "resolve_merchant",
+        "search_merchants",
+        "compare_offers",
+        "get_safe_actions",
+        "preflight"
+      ],
+      "timeout": 10000
+    }
+  },
+  "contextFileName": "GEMINI.md"
+}
