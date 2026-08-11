@@ -268,28 +268,37 @@ export function registerMerchantContextTools(
         action_type: actionType().optional(),
         freshness: z.enum(["fresh", "stale", "unknown", "any"]).optional(),
         max_stale_seconds: z.number().int().nonnegative().optional(),
+        client_id: z
+          .string()
+          .min(3)
+          .max(128)
+          .optional()
+          .describe("Stable, non-secret identifier for the calling client"),
       },
       annotations: freeReadAnnotations(),
     },
     async (input) =>
       jsonToolResult(
-        await requireService(service).search({
-          item_or_service: input.item_or_service,
-          geography: input.geography,
-          maximum_price:
-            input.maximum_price_amount !== undefined &&
-            input.maximum_price_currency !== undefined
-              ? {
-                  amount: input.maximum_price_amount,
-                  currency: input.maximum_price_currency,
-                }
-              : undefined,
-          timing: input.timing,
-          policy: input.policy,
-          action_type: input.action_type,
-          freshness: input.freshness,
-          max_stale_seconds: input.max_stale_seconds,
-        }),
+        await requireService(service).search(
+          clientContext(input.client_id ?? defaultClientId),
+          {
+            item_or_service: input.item_or_service,
+            geography: input.geography,
+            maximum_price:
+              input.maximum_price_amount !== undefined &&
+              input.maximum_price_currency !== undefined
+                ? {
+                    amount: input.maximum_price_amount,
+                    currency: input.maximum_price_currency,
+                  }
+                : undefined,
+            timing: input.timing,
+            policy: input.policy,
+            action_type: input.action_type,
+            freshness: input.freshness,
+            max_stale_seconds: input.max_stale_seconds,
+          },
+        ),
       ),
   );
 
@@ -497,7 +506,7 @@ function requireService(service: MerchantService | undefined): MerchantService {
 }
 
 function clientContext(clientId: string) {
-  return { clientId, internal: clientId.startsWith("internal/") };
+  return { clientId };
 }
 
 function actionType() {

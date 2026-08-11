@@ -20,7 +20,21 @@ describe("direct Merchant Context API", () => {
     expect(response?.status).toBe(200);
     expect(resolve).toHaveBeenCalledWith("https://merchant.example", {
       clientId: "direct-http/test",
-      internal: false,
+    });
+  });
+
+  it("does not trust a public internal client id", async () => {
+    const resolve = vi.fn().mockResolvedValue({ status: "resolved" });
+    await handleFreeApiRequest(
+      request("/v1/resolve", {
+        merchant_url: "https://merchant.example",
+        client_id: "internal/spoofed",
+      }),
+      { resolve } as unknown as MerchantService,
+    );
+
+    expect(resolve).toHaveBeenCalledWith("https://merchant.example", {
+      clientId: "internal/spoofed",
     });
   });
 

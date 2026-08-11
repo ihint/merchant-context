@@ -25,7 +25,7 @@ test("compatibility check calls only the free resolver", async () => {
             name,
             inputSchema:
               name === "resolve_merchant"
-                ? { properties: { merchant_url: {} } }
+                ? { properties: { merchant_url: {}, client_id: {} } }
                 : {},
           })),
         }),
@@ -50,7 +50,10 @@ test("compatibility check calls only the free resolver", async () => {
   assert.deepEqual(calls, [
     {
       name: "resolve_merchant",
-      arguments: { merchant_url: "https://shop.test" },
+      arguments: {
+        merchant_url: "https://shop.test",
+        client_id: "internal/compatibility",
+      },
     },
   ]);
   assert.deepEqual(report.missing, []);

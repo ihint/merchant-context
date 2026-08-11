@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import type { CatalogResolution } from "../src/catalog";
 import type { MerchantResolution } from "../src/contracts";
 import { search_merchants } from "../src/search";
+import { searchCurrentMerchants } from "../src/service";
 
 const known = <T>(value: T) => ({
   state: "known" as const,
@@ -28,7 +30,11 @@ const record = (
         timing: known("today"),
       },
     ],
-    record: { stale: false, observed_at: "2026-08-11T00:00:00Z" },
+    record: {
+      stale: false,
+      observed_at: "2026-08-11T00:00:00Z",
+      expires_at: "2099-01-01T00:00:00Z",
+    },
   }) as unknown as MerchantResolution;
 
 describe("search_merchants", () => {
@@ -49,5 +55,39 @@ describe("search_merchants", () => {
       "https://a.example",
       "https://b.example",
     ]);
+  });
+
+  it("recomputes catalog freshness and resolves attribution for the caller", async () => {
+    const snapshot = record("https://shop.example", "Bike", 10);
+    snapshot.record.expires_at = "2026-08-10T00:00:00Z";
+    snapshot.record.stale = false;
+    const current = record("https://shop.example", "Bike", 10);
+    current.actions = [
+      {
+        id: "buy",
+        type: "checkout",
+        attribution: { token: "fresh-caller-token" },
+      },
+    ] as MerchantResolution["actions"];
+    const resolve = async () => current;
+
+    const found = await searchCurrentMerchants(
+      [snapshot as unknown as CatalogResolution],
+      { freshness: "any" },
+      new Date("2026-08-11T00:00:00Z"),
+      resolve,
+    );
+
+    expect(found[0].resolution.actions[0].attribution.token).toBe(
+      "fresh-caller-token",
+    );
+    expect(
+      await searchCurrentMerchants(
+        [snapshot as unknown as CatalogResolution],
+        { freshness: "fresh" },
+        new Date("2026-08-11T00:00:00Z"),
+        resolve,
+      ),
+    ).toEqual([]);
   });
 });

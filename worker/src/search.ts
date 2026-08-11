@@ -25,11 +25,30 @@ export interface MerchantSearchResult {
   matching_offers: ResolvedOffer[];
 }
 
-export function search_merchants(
-  records: readonly MerchantResolution[],
+export interface SearchableMerchantResolution {
+  status: MerchantResolution["status"];
+  merchant: MerchantResolution["merchant"];
+  offers: ResolvedOffer[];
+  policies: MerchantResolution["policies"];
+  supported_geography: MerchantResolution["supported_geography"];
+  actions: Array<Pick<SafeAction, "type">>;
+  record: Pick<
+    MerchantResolution["record"],
+    "observed_at" | "expires_at" | "stale"
+  >;
+}
+
+export interface SearchResult<T extends SearchableMerchantResolution> {
+  origin: string;
+  resolution: T;
+  matching_offers: ResolvedOffer[];
+}
+
+export function search_merchants<T extends SearchableMerchantResolution>(
+  records: readonly T[],
   query: MerchantSearch = {},
-): MerchantSearchResult[] {
-  const results: MerchantSearchResult[] = [];
+): SearchResult<T>[] {
+  const results: SearchResult<T>[] = [];
   for (const resolution of records) {
     if (!matchesFreshness(resolution, query)) continue;
     if (
@@ -78,7 +97,7 @@ export const searchMerchants = search_merchants;
 
 function matchesOffer(
   offer: ResolvedOffer,
-  resolution: MerchantResolution,
+  resolution: SearchableMerchantResolution,
   query: MerchantSearch,
 ): boolean {
   if (
@@ -138,7 +157,7 @@ function includes(value: string, expected: string): boolean {
 }
 
 function matchesFreshness(
-  resolution: MerchantResolution,
+  resolution: SearchableMerchantResolution,
   query: MerchantSearch,
 ): boolean {
   const freshness = query.freshness;

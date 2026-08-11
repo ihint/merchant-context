@@ -12,6 +12,7 @@
   "compatibility_date": "2026-08-03",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "vars": {
+    "TRAFFIC_PROVENANCE": "outside",
     "X402_NETWORK": "base",
     "X402_RECIPIENT": "0x11abA13083A7F07416CE2cBA0aBD644F11f39B12",
   },
@@ -58,6 +59,7 @@
       "preview_urls": true,
       "routes": [],
       "vars": {
+        "TRAFFIC_PROVENANCE": "internal",
         "X402_NETWORK": "base-sepolia",
         "X402_RECIPIENT": "0x11abA13083A7F07416CE2cBA0aBD644F11f39B12",
       },

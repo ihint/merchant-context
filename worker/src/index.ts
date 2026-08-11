@@ -21,6 +21,7 @@ export interface Env extends PaymentEnv {
   USAGE_DB?: D1Database;
   ATTRIBUTION_SIGNING_KEY?: string;
   MERCHANT_RECEIPT_SECRET?: string;
+  TRAFFIC_PROVENANCE?: "internal" | "outside";
 }
 
 export class MerchantContextMcp extends McpAgent<Env> {
@@ -97,7 +98,6 @@ export default {
         inspect: async (merchantUrl, agentId) => {
           const result = await service.refresh(merchantUrl, {
             clientId: agentId,
-            internal: agentId.startsWith("internal/"),
           });
           return { origin: result.inspection.origin, ...result };
         },
@@ -156,6 +156,8 @@ function serviceFromEnv(env: Env): MerchantService {
     database: requireDatabase(env),
     attributionSecret,
     merchantReceiptSecret,
+    trafficProvenance:
+      env.TRAFFIC_PROVENANCE === "internal" ? "internal" : "outside",
   });
 }
 

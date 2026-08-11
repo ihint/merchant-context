@@ -31,7 +31,7 @@ export class MerchantPreflightClient {
   }
 
   searchMerchants(query) {
-    return this.post("search", query);
+    return this.post("search", { client_id: this.clientId, ...query });
   }
   compareOffers(input) {
     return this.post("compare", { client_id: this.clientId, ...input });

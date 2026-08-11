@@ -69,7 +69,7 @@ It is free.
 A cache hit makes no merchant fetch and no paid inspection call.
 
 See the [agent integration guide](docs/agent-integration.md) for Codex, Claude Code,
-Gemini CLI, Cursor, VS Code, and the OpenAI Responses API.
+Gemini CLI, Cursor, and the OpenAI Responses API.
 
 Agents that support the open Agent Skills format can use
 [`skills/merchant-context`](skills/merchant-context/SKILL.md).

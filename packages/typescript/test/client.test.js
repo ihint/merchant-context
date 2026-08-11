@@ -33,3 +33,21 @@ test("refresh cannot spend without explicit approval", async () => {
     /approved: true/,
   );
 });
+
+test("search sends the caller id for fresh attribution", async () => {
+  let body;
+  const client = new MerchantPreflightClient({
+    clientId: "test/client",
+    fetch: async (_url, init) => {
+      body = JSON.parse(init.body);
+      return new Response("[]", { status: 200 });
+    },
+  });
+
+  await client.searchMerchants({ item_or_service: "bike" });
+
+  assert.deepEqual(body, {
+    client_id: "test/client",
+    item_or_service: "bike",
+  });
+});

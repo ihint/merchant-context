@@ -51,7 +51,34 @@ describe("merchant record normalization", () => {
       "https://shop.example/merchant-context.json",
     ]);
     expect(record.offers[0].price.state).toBe("unknown");
+    expect(record.offers[0].price.evidence).toEqual(record.evidence);
     expect(record.actions).toHaveLength(0);
+  });
+
+  it("uses a merchant-owned recovery URL", async () => {
+    const record = await normalizeMerchantRecord(
+      {
+        ...publicRecord,
+        merchant: {
+          ...publicRecord.merchant,
+          support_url: "https://github.com/ihint/merchant-context/issues",
+        },
+        actions: [
+          {
+            name: "learn_more",
+            method: "GET",
+            url: "https://shop.example/about",
+            human_confirmation_required: false,
+          },
+        ],
+      },
+      {
+        fetchedOrigin: "https://shop.example",
+        expiresAt: "2099-08-11T12:00:00Z",
+      },
+    );
+
+    expect(record.actions[0].recovery.url).toBe("https://shop.example");
   });
 
   it("binds the canonical origin to the fetched origin", async () => {

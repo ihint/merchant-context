@@ -103,6 +103,7 @@ export async function handleFreeApiRequest(
     if (path === "/v1/search") {
       const input = z
         .object({
+          client_id: clientId,
           item_or_service: z.string().min(1).max(256).optional(),
           geography: z.string().min(1).max(128).optional(),
           maximum_price: price.optional(),
@@ -122,7 +123,10 @@ export async function handleFreeApiRequest(
         })
         .strict()
         .parse(body);
-      return jsonResponse(await service.search(input));
+      const { client_id, ...query } = input;
+      return jsonResponse(
+        await service.search(clientContext(client_id), query),
+      );
     }
 
     if (path === "/v1/compare") {
@@ -218,7 +222,7 @@ export async function handleFreeApiRequest(
 }
 
 function clientContext(value: string) {
-  return { clientId: value, internal: value.startsWith("internal/") };
+  return { clientId: value };
 }
 
 async function readJson(request: Request): Promise<unknown> {

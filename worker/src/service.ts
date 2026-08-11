@@ -1,4 +1,4 @@
-import { D1Catalog } from "./catalog";
+import { D1Catalog, type CatalogResolution } from "./catalog";
 import { compareOffers } from "./compare";
 import type {
   MerchantResolution,
@@ -44,11 +44,11 @@ export interface MerchantServiceOptions {
   merchantReceiptOrigin?: string;
   fetcher?: typeof fetch;
   now?: () => Date;
+  trafficProvenance?: "internal" | "outside";
 }
 
 export interface ClientContext {
   clientId: string;
-  internal?: boolean;
 }
 
 export class MerchantService {
@@ -80,7 +80,7 @@ export class MerchantService {
 
       return resolution;
     } finally {
-      await this.measure("resolve_merchant", cache, started, client);
+      await this.measure("resolve_merchant", cache, started);
     }
   }
 
@@ -121,8 +121,14 @@ export class MerchantService {
     );
   }
 
-  async search(query: MerchantSearch = {}) {
-    return searchMerchants(await this.catalog.list(), query);
+  async search(client: ClientContext, query: MerchantSearch = {}) {
+    const now = this.options.now?.() ?? new Date();
+    return searchCurrentMerchants(
+      await this.catalog.list(),
+      query,
+      now,
+      (origin) => this.resolve(origin, client),
+    );
   }
 
   async compare(merchantUrls: string[], client: ClientContext) {
@@ -214,13 +220,13 @@ export class MerchantService {
             this.options.attributionSecret,
             this.options.now?.() ?? new Date(),
           );
-          await this.registerSession(payload, client.internal === true);
+          await this.registerSession(payload, this.isInternalTraffic());
           await recordClientBeacon(
             this.options.database,
             {
               event: "resolved",
               sessionToken: session.token,
-              internal: client.internal === true,
+              internal: this.isInternalTraffic(),
             },
             this.options.attributionSecret,
             this.options.now?.() ?? new Date(),
@@ -283,7 +289,6 @@ export class MerchantService {
     operation: string,
     cache: MerchantResolution["record"]["cache"] | null,
     started: number,
-    client: ClientContext,
   ): Promise<void> {
     try {
       await this.options.database
@@ -296,7 +301,7 @@ export class MerchantService {
           operation,
           cache,
           Math.max(0, Date.now() - started),
-          client.internal ? 1 : 0,
+          this.isInternalTraffic() ? 1 : 0,
           (this.options.now?.() ?? new Date()).toISOString(),
         )
         .run();
@@ -304,6 +309,35 @@ export class MerchantService {
       // A metric write must not change a resolver result.
     }
   }
+
+  private isInternalTraffic(): boolean {
+    return this.options.trafficProvenance === "internal";
+  }
+}
+
+export async function searchCurrentMerchants(
+  catalogRecords: readonly CatalogResolution[],
+  query: MerchantSearch,
+  now: Date,
+  resolve: (origin: string) => Promise<MerchantResolution>,
+) {
+  const currentQuery = { ...query, now };
+  const candidates = searchMerchants(
+    catalogRecords.map((resolution) => ({
+      ...resolution,
+      record: {
+        ...resolution.record,
+        stale: Date.parse(resolution.record.expires_at) <= now.getTime(),
+      },
+    })),
+    currentQuery,
+  );
+  const current = await Promise.all(
+    candidates.map(({ origin }) => resolve(origin)),
+  );
+  return current.flatMap((resolution) =>
+    searchMerchants([resolution], currentQuery),
+  );
 }
 
 class D1MerchantRecordStore implements MerchantRecordStore {

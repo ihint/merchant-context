@@ -5,7 +5,7 @@ import { MemoryCatalog, normalizeOrigin } from "../src/catalog";
 describe("catalog", () => {
   it("normalizes keys and lists them in stable order", async () => {
     const make = (origin: string) =>
-      ({ merchant: { origin } }) as unknown as MerchantResolution;
+      ({ merchant: { origin }, actions: [] }) as unknown as MerchantResolution;
     const catalog = new MemoryCatalog([
       make("https://b.example/path"),
       make("https://a.example"),
@@ -19,5 +19,22 @@ describe("catalog", () => {
 
   it("rejects non-HTTPS origins", () => {
     expect(() => normalizeOrigin("http://shop.example")).toThrow();
+  });
+
+  it("does not store client attribution sessions", async () => {
+    const resolution = {
+      merchant: { origin: "https://shop.example" },
+      actions: [
+        {
+          id: "buy",
+          attribution: { token: "client-bound-token" },
+        },
+      ],
+    } as unknown as MerchantResolution;
+    const catalog = new MemoryCatalog([resolution]);
+
+    expect((await catalog.get("https://shop.example"))?.actions[0]).toEqual({
+      id: "buy",
+    });
   });
 });

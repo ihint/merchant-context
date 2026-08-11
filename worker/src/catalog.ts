@@ -1,13 +1,20 @@
-import type { MerchantResolution } from "./contracts";
+import type { MerchantResolution, SafeAction } from "./contracts";
+
+export type CatalogResolution = Omit<
+  MerchantResolution,
+  "actions" | "selected_action" | "approval_required" | "next_steps"
+> & {
+  actions: Array<Omit<SafeAction, "attribution">>;
+};
 
 export interface CatalogRecord {
   origin: string;
-  resolution: MerchantResolution;
+  resolution: CatalogResolution;
 }
 
 export interface Catalog {
-  get(origin: string): Promise<MerchantResolution | null>;
-  list(): Promise<MerchantResolution[]>;
+  get(origin: string): Promise<CatalogResolution | null>;
+  list(): Promise<CatalogResolution[]>;
   put(resolution: MerchantResolution): Promise<void>;
   delete(origin: string): Promise<void>;
 }
@@ -42,7 +49,7 @@ export class D1Catalog implements Catalog {
     }
   }
 
-  async get(origin: string): Promise<MerchantResolution | null> {
+  async get(origin: string): Promise<CatalogResolution | null> {
     const normalized = normalizeOrigin(origin);
     const row = await this.db
       .prepare(
@@ -53,7 +60,7 @@ export class D1Catalog implements Catalog {
     return row ? parseResolution(row.resolution_json) : null;
   }
 
-  async list(): Promise<MerchantResolution[]> {
+  async list(): Promise<CatalogResolution[]> {
     const result = await this.db
       .prepare(
         `SELECT origin, resolution_json FROM ${this.table} ORDER BY origin ASC`,
@@ -71,13 +78,7 @@ export class D1Catalog implements Catalog {
         `INSERT INTO ${this.table} (origin, resolution_json) VALUES (?1, ?2) ` +
           "ON CONFLICT(origin) DO UPDATE SET resolution_json = excluded.resolution_json",
       )
-      .bind(
-        origin,
-        JSON.stringify({
-          ...resolution,
-          merchant: { ...resolution.merchant, origin },
-        }),
-      )
+      .bind(origin, JSON.stringify(toCatalogResolution(resolution, origin)))
       .run();
   }
 
@@ -90,17 +91,17 @@ export class D1Catalog implements Catalog {
 }
 
 export class MemoryCatalog implements Catalog {
-  private readonly records = new Map<string, MerchantResolution>();
+  private readonly records = new Map<string, CatalogResolution>();
 
   constructor(initial: MerchantResolution[] = []) {
     for (const resolution of initial) this.store(resolution);
   }
 
-  async get(origin: string): Promise<MerchantResolution | null> {
+  async get(origin: string): Promise<CatalogResolution | null> {
     return this.records.get(normalizeOrigin(origin)) ?? null;
   }
 
-  async list(): Promise<MerchantResolution[]> {
+  async list(): Promise<CatalogResolution[]> {
     return [...this.records.entries()]
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([, value]) => value);
@@ -116,10 +117,7 @@ export class MemoryCatalog implements Catalog {
 
   private store(resolution: MerchantResolution): void {
     const origin = normalizeOrigin(resolution.merchant.origin);
-    this.records.set(origin, {
-      ...resolution,
-      merchant: { ...resolution.merchant, origin },
-    });
+    this.records.set(origin, toCatalogResolution(resolution, origin));
   }
 }
 
@@ -130,9 +128,28 @@ export function normalizeOrigin(origin: string): string {
   return url.origin.toLowerCase();
 }
 
-function parseResolution(json: string): MerchantResolution {
+function parseResolution(json: string): CatalogResolution {
   const value: unknown = JSON.parse(json);
   if (!value || typeof value !== "object" || !("merchant" in value))
     throw new Error("Invalid catalog record");
-  return value as MerchantResolution;
+  return value as CatalogResolution;
+}
+
+function toCatalogResolution(
+  resolution: MerchantResolution,
+  origin: string,
+): CatalogResolution {
+  return {
+    contract_version: resolution.contract_version,
+    status: resolution.status,
+    merchant: { ...resolution.merchant, origin },
+    facts: resolution.facts,
+    offers: resolution.offers,
+    policies: resolution.policies,
+    supported_geography: resolution.supported_geography,
+    actions: resolution.actions.map(
+      ({ attribution: _attribution, ...action }) => action,
+    ),
+    record: resolution.record,
+  } satisfies CatalogResolution;
 }

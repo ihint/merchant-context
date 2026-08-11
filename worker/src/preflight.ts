@@ -7,6 +7,7 @@ import {
   type PreflightResult,
   type SafeAction,
 } from "./contracts";
+import { getSafeActions } from "./safe-actions";
 
 export function preflight(
   resolution: MerchantResolution,
@@ -39,25 +40,30 @@ export function preflight(
     }
   }
 
-  let candidates = resolution.actions.filter(
-    (action) => Date.parse(action.expires_at) > now.getTime(),
-  );
-  if (intent.action_type)
-    candidates = candidates.filter(
-      (action) => action.type === intent.action_type,
-    );
-  if (constraints.allowed_authority) {
-    candidates = candidates.filter((action) =>
-      constraints.allowed_authority!.includes(action.allowed_authority),
-    );
-  }
+  const safeActionResult = getSafeActions(resolution, {
+    action_type: intent.action_type,
+    allowed_authority: constraints.allowed_authority,
+    human_confirmation_available: constraints.human_confirmation_available,
+    now,
+  });
+  const candidates = safeActionResult.actions;
   const selected = candidates[0] ?? null;
+  const confirmationCandidate =
+    selected ??
+    safeActionResult.rejected.find(
+      ({ action, reason }) =>
+        action.human_confirmation_required &&
+        reason === "Human confirmation is not available",
+    )?.action ??
+    null;
   if (selected === null) {
     reasons.push(
       resolution.actions.length > 0
         ? "No action meets the requested type, authority, and expiry."
         : "The record has no safe merchant-owned action.",
     );
+    const safetyReason = safeActionResult.rejected[0]?.reason;
+    if (safetyReason) reasons.push(`Safe action rejected: ${safetyReason}.`);
     hasBlockingReason = true;
   }
 
@@ -110,7 +116,8 @@ export function preflight(
     }
   }
 
-  const confirmationRequired = selected?.human_confirmation_required === true;
+  const confirmationRequired =
+    confirmationCandidate?.human_confirmation_required === true;
   const confirmationUnavailable =
     confirmationRequired && constraints.human_confirmation_available === false;
   if (confirmationUnavailable) {

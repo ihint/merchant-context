@@ -44,7 +44,12 @@ export async function checkCompatibility({
 
 export function resolverArguments(schema, merchantUrl) {
   const properties = schema?.properties ?? {};
-  if ("merchant_url" in properties) return { merchant_url: merchantUrl };
+  const client = "internal/compatibility";
+  if ("merchant_url" in properties)
+    return {
+      merchant_url: merchantUrl,
+      ...(properties.client_id ? { client_id: client } : {}),
+    };
   if ("merchant" in properties) return { merchant: merchantUrl };
   if ("origin" in properties) return { origin: merchantUrl };
   if ("url" in properties) return { url: merchantUrl };

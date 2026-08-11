@@ -137,10 +137,18 @@ function unknownResolution(
   now: Date,
   cache: "miss",
 ): MerchantResolution {
+  const evidence = [
+    {
+      url: `${origin}/merchant-context.json`,
+      observed_at: now.toISOString(),
+      expires_at: null,
+      freshness: "unknown" as const,
+    },
+  ];
   const unknown = <T>(reason: string) => ({
     state: "unknown" as const,
     reason,
-    evidence: [],
+    evidence,
   });
   return {
     contract_version: MERCHANT_PREFLIGHT_CONTRACT_VERSION,

@@ -80,6 +80,26 @@ describe("resolveMerchant", () => {
     expect(result.record.cache).toBe("miss");
     expect(result.record.observed_at).toBe("2026-08-10T12:00:00Z");
   });
+
+  it("records the checked source when a merchant stays unknown", async () => {
+    const result = await resolveMerchant("https://unknown.example", {
+      store: { get: vi.fn(async () => null), put: vi.fn() },
+      sessionMinter: minter,
+      fetcher: vi.fn(async () => new Response("missing", { status: 404 })),
+      now: () => new Date("2026-08-11T00:00:00Z"),
+    });
+
+    expect(result.merchant.name).toMatchObject({
+      state: "unknown",
+      evidence: [
+        {
+          url: "https://unknown.example/merchant-context.json",
+          observed_at: "2026-08-11T00:00:00.000Z",
+          freshness: "unknown",
+        },
+      ],
+    });
+  });
 });
 
 async function normalized(

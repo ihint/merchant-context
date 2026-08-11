@@ -87,7 +87,7 @@ export async function normalizeMerchantRecord(
   const unknown = <T>(reason: string): SourcedValue<T> => ({
     state: "unknown",
     reason,
-    evidence: [],
+    evidence,
   });
   const aliases = normalizeAliases(options.aliases ?? [], fetchedOrigin);
   const allowedOrigins = new Set([fetchedOrigin, ...aliases]);
@@ -112,7 +112,11 @@ export async function normalizeMerchantRecord(
             "The merchant record does not state an idempotency rule.",
         },
         recovery: {
-          url: parsed.merchant.support_url ?? parsed.merchant.canonical_url,
+          url:
+            parsed.merchant.support_url &&
+            isMerchantOwnedAction(parsed.merchant.support_url, allowedOrigins)
+              ? parsed.merchant.support_url
+              : parsed.merchant.canonical_url,
           instructions:
             "Contact the merchant before retrying an action with an unknown result.",
         },

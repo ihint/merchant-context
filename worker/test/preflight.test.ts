@@ -28,6 +28,8 @@ describe("preflight", () => {
 
     expect(result.decision).toBe("blocked");
     expect(result.approval_required).toBe(true);
+    expect(result.selected_safe_action).toBeNull();
+    expect(result.attribution_session).toBeNull();
   });
 
   it("requires confirmation and blocks stale evidence outside the limit", () => {
@@ -45,6 +47,17 @@ describe("preflight", () => {
         new Date("2026-08-11T00:00:00Z"),
       ).decision,
     ).toBe("blocked");
+  });
+
+  it("rejects the same foreign recovery URL as get_safe_actions", () => {
+    const resolution = fixture();
+    resolution.actions[0].recovery.url = "https://other.example/help";
+
+    const result = preflight(resolution, {}, {}, new Date("2026-08-11"));
+
+    expect(result.decision).toBe("blocked");
+    expect(result.selected_safe_action).toBeNull();
+    expect(result.reasons.join(" ")).toContain("Recovery URL is not owned");
   });
 });
 
