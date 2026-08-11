@@ -95,6 +95,12 @@ export function parseWranglerConfig(value) {
 }
 
 function writeConfig(config) {
+  const current = readFileSync(configPath, "utf8");
+
+  if (JSON.stringify(parseWranglerConfig(current)) === JSON.stringify(config)) {
+    return;
+  }
+
   writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf8");
 }
 
@@ -160,10 +166,12 @@ async function verifyEndpoint(endpoint) {
     throw new Error("Health check body is invalid");
   }
 
-  const serviceResponse = await fetch(
-    new URL("/.well-known/merchant-context", endpoint),
-    { signal: AbortSignal.timeout(10_000) },
-  );
+  const serviceUrl = new URL("/.well-known/merchant-context", endpoint);
+  serviceUrl.searchParams.set("release_check", crypto.randomUUID());
+  const serviceResponse = await fetch(serviceUrl, {
+    headers: { "cache-control": "no-cache" },
+    signal: AbortSignal.timeout(10_000),
+  });
   const service = await serviceResponse.json();
 
   if (
