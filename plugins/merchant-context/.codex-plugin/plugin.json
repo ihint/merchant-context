@@ -1,0 +1,7 @@
+{
+  "name": "merchant-context",
+  "version": "0.3.0",
+  "description": "Resolve sourced merchant facts before agent commerce actions",
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json"
+}

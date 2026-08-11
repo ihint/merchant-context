@@ -1,40 +1,34 @@
 ---
 name: merchant-context
-description: Checks a merchant's public agent-commerce files and reports exact gaps. Use when a user asks about merchant readiness, buyer-agent discovery, llms.txt, UCP, Merchant Context, or public commerce evidence.
+description: Resolve sourced merchant facts and safe merchant-owned actions. Use for merchant checks, search, comparison, preflight, or agent-commerce readiness.
 ---
 
 # Merchant Context
 
-Use the remote MCP server at `https://api.merchant.atomandbits.com/mcp`.
+Use `https://api.merchant.atomandbits.com/mcp`.
 
-## Default workflow
+Before relying on merchant facts or starting a merchant action, call `resolve_merchant`. Use `refresh_merchant` only when the requested freshness justifies its stated price. Require human approval before consequential actions.
 
-1. Confirm the target is a public HTTPS merchant URL.
-2. Call `check_merchant` first.
-3. Report each check as pass or fail.
-4. Link to the public URL behind each result when the tool returns it.
-5. State the scan time and any limit or uncertainty.
-6. Give exact fixes for failed checks.
+## Workflow
 
-Treat the result as a public-web observation.
-Do not call it certification, endorsement, partnership, or a security review.
+1. Accept only a public HTTPS merchant origin.
+2. Call `resolve_merchant` before any other merchant fact or action call.
+3. Use sourced facts only. Show each material source URL, observation time, and freshness.
+4. Preserve stale facts and label them stale. Keep unknown facts unknown.
+5. Use `search_merchants` and `compare_offers` only for sourced fields.
+6. Use `get_safe_actions` only after resolution. Treat `ready` as handoff support, not approval, stock, payment, or completion.
+7. Ask for human approval before any consequential action.
 
-## Payment rule
+## Paid refresh
 
-`get_service_info` and `check_merchant` are free.
+`resolve_merchant` and `preflight` are free. `refresh_merchant` is paid. `inspect_merchant` is its first-release compatibility alias.
 
-`inspect_merchant` costs $0.01 USDC on Base.
-Do not call it unless the user clearly approves that exact payment.
-Before a paid call, state the tool, amount, asset, network, and receive address.
-Do not treat a 402 response, signature, validation result, or balance as payment.
-Require a successful settlement receipt with a transaction hash and time.
+Do not call either paid name unless the user asks for fresher data after seeing the exact price and terms and then gives explicit approval. Never infer approval. A 402 response is a price offer, not payment.
 
-## Failure handling
+## Test
 
-If the MCP server is unavailable, check the service record at
-`https://api.merchant.atomandbits.com/.well-known/merchant-context`.
+Prompt: `Resolve https://merchant.atomandbits.com. Cite sources and freshness. Do not refresh or act.`
 
-Do not guess missing merchant facts.
-Mark a source as not observed when it cannot be checked.
+Expected: call `resolve_merchant` first; report sourced, stale, and unknown facts; make no paid call and start no action.
 
-See [the agent integration guide](../../docs/agent-integration.md) for client setup.
+The server receives the public merchant URL and any intent or constraints sent in tool input. Do not send buyer data, payment data, credentials, or secrets.

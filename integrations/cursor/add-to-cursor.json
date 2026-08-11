@@ -1,0 +1,8 @@
+{
+  "name": "merchant-context",
+  "config": {
+    "url": "https://api.merchant.atomandbits.com/mcp"
+  },
+  "deeplink_base": "cursor://anysphere.cursor-deeplink/mcp/install",
+  "status": "untested"
+}

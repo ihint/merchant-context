@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "merchant-context": {
+      "httpUrl": "https://api.merchant.atomandbits.com/mcp",
+      "excludeTools": ["refresh_merchant", "inspect_merchant"]
+    }
+  }
+}
