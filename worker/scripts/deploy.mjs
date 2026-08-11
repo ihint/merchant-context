@@ -87,7 +87,11 @@ function run(command, args, options = {}) {
 }
 
 function readConfig() {
-  return JSON.parse(readFileSync(configPath, "utf8"));
+  return parseWranglerConfig(readFileSync(configPath, "utf8"));
+}
+
+export function parseWranglerConfig(value) {
+  return JSON.parse(value.replace(/,\s*([}\]])/gu, "$1"));
 }
 
 function writeConfig(config) {
