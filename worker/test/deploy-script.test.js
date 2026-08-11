@@ -1,12 +1,19 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  parseWranglerConfig,
   productionInputs,
   verifyEndpointWithRetry,
   withProductionBindings,
 } from "../scripts/deploy.mjs";
 
 describe("production deploy guard", () => {
+  it("reads Wrangler JSONC with trailing commas", () => {
+    expect(
+      parseWranglerConfig('{"vars":{"TRAFFIC_PROVENANCE":"outside",},}'),
+    ).toEqual({ vars: { TRAFFIC_PROVENANCE: "outside" } });
+  });
+
   it("requires the exact deploy approval and a valid nonzero Base address", () => {
     expect(() => productionInputs({})).toThrow(
       "Set ALLOW_PRODUCTION_DEPLOY=merchant-context",
