@@ -13,88 +13,115 @@ Do not claim support for a protocol until a live endpoint or file passes a test.
 | Public web discovery | HTML, `robots.txt`, `sitemap.xml`, Schema.org JSON-LD | Crawl access, page discovery, and structured public facts | Live stock, authority, or checkout support |
 | Merchant listings | [Schema.org `Offer`](https://schema.org/Offer), [`Product`](https://schema.org/Product), and [`MerchantReturnPolicy`](https://schema.org/MerchantReturnPolicy) | Machine-readable offers, price, availability, item, seller, shipping, and returns data | Agent consent, checkout execution, or real-time correctness by itself |
 | Product discovery in ChatGPT | [Agentic Commerce Protocol](https://github.com/agentic-commerce-protocol/agentic-commerce-protocol) | Agentic checkout, delegated payment, feed, cart, orders, authentication, MCP-related extensions, OpenAPI specs, JSON Schemas, examples, and changelog snapshots | Support in every buyer agent or every merchant system |
-| Google and Gemini commerce | [Universal Commerce Protocol](https://ucp.dev/) | Discovery, catalog search and lookup, cart building, identity linking, checkout, order management, native checkout, embedded checkout, and post-purchase capability exchange | Automatic support outside participating platforms, agents, and businesses |
+| Google and Gemini commerce | [Universal Commerce Protocol](https://ucp.dev/) | Discovery, catalog search and lookup, cart building, identity linking, checkout, order management, native checkout, embedded checkout, post-purchase capability exchange, and announced shopping, lodging, and food industry coverage | Automatic support outside participating platforms, agents, and businesses |
 | Search update notice | [IndexNow](https://www.indexnow.org/documentation) | Notifies participating search engines that URLs were added, updated, or deleted | Ranking, indexing, or proof that a submitted URL was crawled |
 | General tool access | [Model Context Protocol](https://modelcontextprotocol.io/specification/2025-06-18) | Typed tools, resources, prompts, transport, and authorization patterns for AI clients | Commerce semantics or safe payment by itself |
 | Agent-to-agent calls | [Agent2Agent Protocol](https://a2a-protocol.org/latest/) | Agent discovery, agent-to-agent task delegation, message exchange, and collaboration across agent frameworks | Merchant catalog or checkout semantics by itself |
 | Cloudflare agent runtime | [Cloudflare Agents](https://developers.cloudflare.com/agents/) and [Cloudflare remote MCP](https://developers.cloudflare.com/agents/model-context-protocol/) | Hosted stateful agents, Workers-based runtime, browser, sandbox, AI Search, MCP tools, payments tools, and remote MCP server guidance | Merchant Context support, ACP support, UCP support, or a passing integration for this repo |
 | Agent identity at the edge | [Cloudflare Web Bot Auth](https://developers.cloudflare.com/bots/reference/bot-verification/web-bot-auth/) | Signed HTTP messages for verified bots and agents using Cloudflare's Web Bot Auth implementation | Permission to buy, spend, bypass policy, or identify the end user |
-| Paid machine requests | HTTP 402 systems such as [x402](https://github.com/x402-foundation/x402) | Payment requirements, payment payloads, verification, settlement, and pay-per-request flows | Product fit, buyer consent, order recovery, or browser-native payment behavior |
+| Paid machine requests | HTTP 402 systems such as [x402](https://github.com/x402-foundation/x402) | Payment requirements, payment payloads, facilitator verification and settlement, payment schemes, discovery APIs, and pay-per-request flows | Product fit, buyer consent, order recovery, or browser-native payment behavior |
 | HTTP status semantics | [RFC 9110 section 15.5.3](https://httpwg.org/specs/rfc9110.html#status.402) and [MDN 402](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/402) | The `402 Payment Required` status code is reserved but not defined by HTTP semantics | A standard payment payload format or browser-native payment UI |
 
 ## Source checks
 
-Checked 2026-08-03.
+Checked 2026-08-18.
 
 - ACP is beta and is maintained by OpenAI and Stripe according to the ACP README.
   Source: https://github.com/agentic-commerce-protocol/agentic-commerce-protocol
-  Checked: 2026-08-03.
+  Checked: 2026-08-18.
 - ACP uses date-based versions and lists `2026-04-17` as the latest stable OpenAPI, JSON Schema, examples, and changelog snapshot in the README.
   Source: https://github.com/agentic-commerce-protocol/agentic-commerce-protocol
-  Checked: 2026-08-03.
+  Checked: 2026-08-18.
+- ACP's changelog directory contains dated releases through `2026-04-17` plus an `unreleased` development directory.
+  Source: https://api.github.com/repos/agentic-commerce-protocol/agentic-commerce-protocol/contents/changelog
+  Checked: 2026-08-18.
 - UCP describes itself as a common language for platforms, agents, and businesses.
   Source: https://ucp.dev/
-  Checked: 2026-08-03.
+  Checked: 2026-08-18.
 - UCP states that it covers discovery/search through final sale and post-purchase support.
   Source: https://ucp.dev/
-  Checked: 2026-08-03.
+  Checked: 2026-08-18.
 - UCP states that core capabilities include catalog search and lookup, cart building, identity linking, checkout, and order management.
   Source: https://ucp.dev/
-  Checked: 2026-08-03.
+  Checked: 2026-08-18.
+- UCP says it is built on REST and JSON-RPC transports with AP2, A2A, and MCP support built in.
+  Source: https://ucp.dev/
+  Checked: 2026-08-18.
+- UCP currently shows a banner saying it is expanding to Lodging and Food, with detailed specifications coming soon.
+  Source: https://ucp.dev/
+  Checked: 2026-08-18.
 - IndexNow accepts one URL by query string or up to 10,000 URLs by POST JSON.
   Source: https://www.indexnow.org/documentation
-  Checked: 2026-08-03.
+  Checked: 2026-08-18.
 - IndexNow says HTTP 200 only means the search engine received the URL or URL set.
   Source: https://www.indexnow.org/documentation
-  Checked: 2026-08-03.
+  Checked: 2026-08-18.
 - Schema.org `Offer` defines an offer to transfer rights to an item or provide a service.
   Source: https://schema.org/Offer
-  Checked: 2026-08-03.
+  Checked: 2026-08-18.
 - Schema.org `Offer` includes properties such as `availability`, `itemOffered`, and `hasMerchantReturnPolicy`.
   Source: https://schema.org/Offer
-  Checked: 2026-08-03.
+  Checked: 2026-08-18.
 - Schema.org `MerchantReturnPolicy` provides return-policy information associated with an Organization, Product, or Offer.
   Source: https://schema.org/MerchantReturnPolicy
-  Checked: 2026-08-03.
+  Checked: 2026-08-18.
 - MCP specification `2025-06-18` defines the authoritative protocol requirements based on its schema.
   Source: https://modelcontextprotocol.io/specification/2025-06-18
-  Checked: 2026-08-03.
-- MCP exposes tools and capabilities to AI systems, but it is not a commerce protocol by itself.
+  Checked: 2026-08-18.
+- MCP uses JSON-RPC 2.0 messages and exposes resources, prompts, and tools to AI systems.
   Source: https://modelcontextprotocol.io/specification/2025-06-18
-  Checked: 2026-08-03.
+  Checked: 2026-08-18.
+- MCP is not a commerce protocol by itself.
+  Source: https://modelcontextprotocol.io/specification/2025-06-18
+  Checked: 2026-08-18.
 - A2A describes itself as an open standard for communication and collaboration between AI agents.
   Source: https://a2a-protocol.org/latest/
-  Checked: 2026-08-03.
+  Checked: 2026-08-18.
 - A2A says it is for agent-to-agent communication and is not a replacement for MCP.
   Source: https://a2a-protocol.org/latest/
-  Checked: 2026-08-03.
-- Cloudflare Agents docs describe a Cloudflare-hosted agent runtime with Browser, Sandbox, AI Search, MCP, Payments, and other MCP tools.
+  Checked: 2026-08-18.
+- Cloudflare Agents docs describe a Cloudflare-hosted durable agent runtime with Browser, Sandbox, AI Search, MCP, Payments, and other MCP tools.
   Source: https://developers.cloudflare.com/agents/
-  Checked: 2026-08-03.
+  Checked: 2026-08-18.
 - Cloudflare remote MCP docs describe building and deploying remote MCP servers on Cloudflare.
   Source: https://developers.cloudflare.com/agents/model-context-protocol/
-  Checked: 2026-08-03.
-- Cloudflare Web Bot Auth verifies bot identity with cryptographic HTTP message signatures.
+  Checked: 2026-08-18.
+- Cloudflare Web Bot Auth verifies bot and agent identity with cryptographic HTTP message signatures.
   Source: https://developers.cloudflare.com/bots/reference/bot-verification/web-bot-auth/
-  Checked: 2026-08-03.
-- Cloudflare Web Bot Auth relies on IETF drafts for key directories and Web Bot Auth architecture.
+  Checked: 2026-08-18.
+- Cloudflare Web Bot Auth requires a key directory at `/.well-known/http-message-signatures-directory`.
   Source: https://developers.cloudflare.com/bots/reference/bot-verification/web-bot-auth/
-  Checked: 2026-08-03.
+  Checked: 2026-08-18.
 - Cloudflare says its Web Bot Auth implementation does not support every component and parameter defined in RFC 9421.
   Source: https://developers.cloudflare.com/bots/reference/bot-verification/web-bot-auth/
-  Checked: 2026-08-03.
+  Checked: 2026-08-18.
 - x402 moved from `coinbase/x402` to `x402-foundation/x402`, with `coinbase/x402` now a development fork.
   Source: https://github.com/coinbase/x402
-  Checked: 2026-08-03.
+  Checked: 2026-08-18.
 - x402 describes itself as an open standard for internet-native payments across crypto and fiat forms of value.
   Source: https://github.com/x402-foundation/x402
-  Checked: 2026-08-03.
-- x402's typical flow uses `402 Payment Required`, `PAYMENT-REQUIRED`, `PAYMENT-SIGNATURE`, `/verify`, and `/settle`.
+  Checked: 2026-08-18.
+- x402 v2 separates protocol data structures from transport representations such as HTTP, MCP, and A2A.
+  Source: https://raw.githubusercontent.com/x402-foundation/x402/main/specs/x402-specification-v2.md
+  Checked: 2026-08-18.
+- x402 v2 standardizes facilitator `/verify` and `/settle` APIs as HTTP REST endpoints.
+  Source: https://raw.githubusercontent.com/x402-foundation/x402/main/specs/x402-specification-v2.md
+  Checked: 2026-08-18.
+- x402 v2 includes discovery APIs for resources and search.
+  Source: https://raw.githubusercontent.com/x402-foundation/x402/main/specs/x402-specification-v2.md
+  Checked: 2026-08-18.
+- x402's README typical HTTP flow uses `402 Payment Required`, `PAYMENT-REQUIRED`, `PAYMENT-SIGNATURE`, `/verify`, `/settle`, and `PAYMENT-RESPONSE`.
   Source: https://github.com/x402-foundation/x402
-  Checked: 2026-08-03.
-- MDN says HTTP `402 Payment Required` is nonstandard, reserved for future use, and handled by browsers as a generic 4xx status.
+  Checked: 2026-08-18.
+- MDN says HTTP `402 Payment Required` is nonstandard, reserved for future use, and has no standard use convention.
   Source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/402
-  Checked: 2026-08-03.
+  Checked: 2026-08-18.
+- MDN says browsers display HTTP `402 Payment Required` as a generic 4xx status code.
+  Source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/402
+  Checked: 2026-08-18.
+- RFC 9110 registers HTTP `402 Payment Required` as reserved for future use.
+  Source: https://httpwg.org/specs/rfc9110.html#status.402
+  Checked: 2026-08-18.
 
 ## Terms
 
