@@ -24,77 +24,113 @@ Do not claim support for a protocol until a live endpoint or file passes a test.
 
 ## Source checks
 
-Checked 2026-08-03.
+Checked 2026-08-26.
 
 - ACP is beta and is maintained by OpenAI and Stripe according to the ACP README.
   Source: https://github.com/agentic-commerce-protocol/agentic-commerce-protocol
-  Checked: 2026-08-03.
-- ACP uses date-based versions and lists `2026-04-17` as the latest stable OpenAPI, JSON Schema, examples, and changelog snapshot in the README.
+  Checked: 2026-08-26.
+- ACP uses date-based versioning and lists `2026-04-17` as the latest stable OpenAPI, JSON Schema, examples, and changelog snapshot in the README.
   Source: https://github.com/agentic-commerce-protocol/agentic-commerce-protocol
-  Checked: 2026-08-03.
-- UCP describes itself as a common language for platforms, agents, and businesses.
+  Checked: 2026-08-26.
+- ACP has an `unreleased` development area and an `unreleased` changelog directory.
+  Source: https://api.github.com/repos/agentic-commerce-protocol/agentic-commerce-protocol/contents/changelog
+  Checked: 2026-08-26.
+- ACP says it was first implemented by OpenAI and Stripe.
+  Source: https://github.com/agentic-commerce-protocol/agentic-commerce-protocol
+  Checked: 2026-08-26.
+- UCP describes itself as the common language for platforms, agents, and businesses.
   Source: https://ucp.dev/
-  Checked: 2026-08-03.
-- UCP states that it covers discovery/search through final sale and post-purchase support.
+  Checked: 2026-08-26.
+- UCP states that it provides building blocks for agentic commerce across industries from discovery to checkout and beyond.
   Source: https://ucp.dev/
-  Checked: 2026-08-03.
+  Checked: 2026-08-26.
+- UCP says it is expanding to Lodging and Food and that detailed specifications are coming soon.
+  Source: https://ucp.dev/
+  Checked: 2026-08-26.
+- UCP says it is built on REST and JSON-RPC transports with AP2, A2A, and MCP support built in.
+  Source: https://ucp.dev/
+  Checked: 2026-08-26.
 - UCP states that core capabilities include catalog search and lookup, cart building, identity linking, checkout, and order management.
   Source: https://ucp.dev/
-  Checked: 2026-08-03.
+  Checked: 2026-08-26.
 - IndexNow accepts one URL by query string or up to 10,000 URLs by POST JSON.
   Source: https://www.indexnow.org/documentation
-  Checked: 2026-08-03.
+  Checked: 2026-08-26.
 - IndexNow says HTTP 200 only means the search engine received the URL or URL set.
   Source: https://www.indexnow.org/documentation
-  Checked: 2026-08-03.
+  Checked: 2026-08-26.
 - Schema.org `Offer` defines an offer to transfer rights to an item or provide a service.
   Source: https://schema.org/Offer
-  Checked: 2026-08-03.
+  Checked: 2026-08-26.
 - Schema.org `Offer` includes properties such as `availability`, `itemOffered`, and `hasMerchantReturnPolicy`.
   Source: https://schema.org/Offer
-  Checked: 2026-08-03.
+  Checked: 2026-08-26.
+- Schema.org `Product` represents any offered product or service.
+  Source: https://schema.org/Product
+  Checked: 2026-08-26.
+- Schema.org `Product` can use `hasMerchantReturnPolicy` for an applicable merchant return policy.
+  Source: https://schema.org/Product
+  Checked: 2026-08-26.
 - Schema.org `MerchantReturnPolicy` provides return-policy information associated with an Organization, Product, or Offer.
   Source: https://schema.org/MerchantReturnPolicy
-  Checked: 2026-08-03.
-- MCP specification `2025-06-18` defines the authoritative protocol requirements based on its schema.
+  Checked: 2026-08-26.
+- MCP specification `2025-06-18` defines the protocol lifecycle and uses JSON-RPC 2.0 messages between hosts, clients, and servers.
   Source: https://modelcontextprotocol.io/specification/2025-06-18
-  Checked: 2026-08-03.
-- MCP exposes tools and capabilities to AI systems, but it is not a commerce protocol by itself.
+  Checked: 2026-08-26.
+- MCP exposes tools, resources, prompts, and capabilities to AI systems, but it is not a commerce protocol by itself.
   Source: https://modelcontextprotocol.io/specification/2025-06-18
-  Checked: 2026-08-03.
+  Checked: 2026-08-26.
 - A2A describes itself as an open standard for communication and collaboration between AI agents.
   Source: https://a2a-protocol.org/latest/
-  Checked: 2026-08-03.
-- A2A says it is for agent-to-agent communication and is not a replacement for MCP.
+  Checked: 2026-08-26.
+- A2A says it standardizes agent-to-agent communication and is not a replacement for MCP.
   Source: https://a2a-protocol.org/latest/
-  Checked: 2026-08-03.
-- Cloudflare Agents docs describe a Cloudflare-hosted agent runtime with Browser, Sandbox, AI Search, MCP, Payments, and other MCP tools.
+  Checked: 2026-08-26.
+- Cloudflare Agents docs describe a hosted agent runtime with durable identity, local SQL storage, real-time connections, scheduled work, and recoverable execution.
   Source: https://developers.cloudflare.com/agents/
-  Checked: 2026-08-03.
+  Checked: 2026-08-26.
+- Cloudflare Agents docs list Browser, Sandbox, AI Search, MCP tools, payments, and Code Mode as agent capabilities.
+  Source: https://developers.cloudflare.com/agents/
+  Checked: 2026-08-26.
 - Cloudflare remote MCP docs describe building and deploying remote MCP servers on Cloudflare.
   Source: https://developers.cloudflare.com/agents/model-context-protocol/
-  Checked: 2026-08-03.
+  Checked: 2026-08-26.
+- Cloudflare remote MCP docs say remote MCP connections use Streamable HTTP and OAuth for account-scoped authorization.
+  Source: https://developers.cloudflare.com/agents/model-context-protocol/
+  Checked: 2026-08-26.
 - Cloudflare Web Bot Auth verifies bot identity with cryptographic HTTP message signatures.
   Source: https://developers.cloudflare.com/bots/reference/bot-verification/web-bot-auth/
-  Checked: 2026-08-03.
-- Cloudflare Web Bot Auth relies on IETF drafts for key directories and Web Bot Auth architecture.
+  Checked: 2026-08-26.
+- Cloudflare Web Bot Auth setup includes publishing a key directory, registering the bot and key directory, and signing requests after verification.
   Source: https://developers.cloudflare.com/bots/reference/bot-verification/web-bot-auth/
-  Checked: 2026-08-03.
+  Checked: 2026-08-26.
 - Cloudflare says its Web Bot Auth implementation does not support every component and parameter defined in RFC 9421.
   Source: https://developers.cloudflare.com/bots/reference/bot-verification/web-bot-auth/
-  Checked: 2026-08-03.
-- x402 moved from `coinbase/x402` to `x402-foundation/x402`, with `coinbase/x402` now a development fork.
-  Source: https://github.com/coinbase/x402
-  Checked: 2026-08-03.
+  Checked: 2026-08-26.
 - x402 describes itself as an open standard for internet-native payments across crypto and fiat forms of value.
   Source: https://github.com/x402-foundation/x402
-  Checked: 2026-08-03.
-- x402's typical flow uses `402 Payment Required`, `PAYMENT-REQUIRED`, `PAYMENT-SIGNATURE`, `/verify`, and `/settle`.
+  Checked: 2026-08-26.
+- x402 moved from `coinbase/x402` to `x402-foundation/x402`, with `coinbase/x402` now a development fork.
+  Source: https://github.com/coinbase/x402
+  Checked: 2026-08-26.
+- x402's README says a typical flow uses `402 Payment Required`, a `PAYMENT-REQUIRED` header, a `PAYMENT-SIGNATURE` header, `/verify`, `/settle`, and a `PAYMENT-RESPONSE` header.
   Source: https://github.com/x402-foundation/x402
-  Checked: 2026-08-03.
+  Checked: 2026-08-26.
+- x402's v2 specification separates core types from transport mechanisms and payment schemes.
+  Source: https://raw.githubusercontent.com/x402-foundation/x402/main/specs/x402-specification-v2.md
+  Checked: 2026-08-26.
+- x402's v2 specification lists `exact`, `upto`, `batch-settlement`, and `auth-capture` as scheme families specified under `specs/schemes/`.
+  Source: https://raw.githubusercontent.com/x402-foundation/x402/main/specs/x402-specification-v2.md
+  Checked: 2026-08-26.
+- x402's v2 specification says the facilitator interface provides HTTP REST APIs for payment verification and settlement.
+  Source: https://raw.githubusercontent.com/x402-foundation/x402/main/specs/x402-specification-v2.md
+  Checked: 2026-08-26.
+- RFC 9110 defines `402 Payment Required` as reserved.
+  Source: https://httpwg.org/specs/rfc9110.html#status.402
+  Checked: 2026-08-26.
 - MDN says HTTP `402 Payment Required` is nonstandard, reserved for future use, and handled by browsers as a generic 4xx status.
   Source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/402
-  Checked: 2026-08-03.
+  Checked: 2026-08-26.
 
 ## Terms
 
