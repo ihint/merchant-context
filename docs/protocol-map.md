@@ -15,7 +15,7 @@ Do not claim support for a protocol until a live endpoint or file passes a test.
 | Product discovery in ChatGPT | [Agentic Commerce Protocol](https://github.com/agentic-commerce-protocol/agentic-commerce-protocol) | Agentic checkout, delegated payment, feed, cart, orders, authentication, MCP-related extensions, OpenAPI specs, JSON Schemas, examples, and changelog snapshots | Support in every buyer agent or every merchant system |
 | Google and Gemini commerce | [Universal Commerce Protocol](https://ucp.dev/) | Discovery, service profiles, catalog search and lookup, cart building, identity linking, checkout, order management, policies, payment-handler negotiation, and post-purchase capability exchange | Automatic support outside participating platforms, agents, and businesses |
 | Search update notice | [IndexNow](https://www.indexnow.org/documentation) | Notifies participating search engines that URLs were added, updated, or deleted | Ranking, indexing, or proof that a submitted URL was crawled |
-| General tool access | [Model Context Protocol](https://modelcontextprotocol.io/specification/2025-06-18) | JSON-RPC protocol, typed tools, resources, prompts, transport, and authorization patterns for AI clients | Commerce semantics or safe payment by itself |
+| General tool access | [Model Context Protocol](https://modelcontextprotocol.io/specification/2026-07-28) | JSON-RPC protocol, stateless requests, per-request capability negotiation, resources, prompts, tools, client features, extensions, transport, and authorization patterns for AI clients | Commerce semantics or safe payment by itself |
 | Agent-to-agent calls | [Agent2Agent Protocol](https://a2a-protocol.org/latest/) | Agent discovery, agent-to-agent task delegation, message exchange, and collaboration across agent frameworks | Merchant catalog or checkout semantics by itself |
 | Cloudflare agent runtime | [Cloudflare Agents](https://developers.cloudflare.com/agents/) and [Cloudflare remote MCP](https://developers.cloudflare.com/agents/model-context-protocol/) | Hosted stateful agents, durable identity, local SQL storage, real-time connections, scheduled work, recoverable execution, browser, sandbox, AI Search, MCP tools, payments tools, x402 payment guides, MPP payment guides, and remote MCP server guidance | Merchant Context support, ACP support, UCP support, or a passing integration for this repo |
 | Agent identity at the edge | [Cloudflare Web Bot Auth](https://developers.cloudflare.com/bots/reference/bot-verification/web-bot-auth/) | Signed HTTP messages for verified bots and agents using Cloudflare's Web Bot Auth implementation | Permission to buy, spend, bypass policy, or identify the end user |
@@ -87,15 +87,24 @@ Checked 2026-09-16.
 - Schema.org `MerchantReturnPolicy` provides return-policy information associated with an Organization, Product, or Offer.
   Source: https://schema.org/MerchantReturnPolicy
   Checked: 2026-09-16.
-- MCP specification `2025-06-18` defines the authoritative protocol requirements based on its TypeScript schema.
-  Source: https://modelcontextprotocol.io/specification/2025-06-18
-  Checked: 2026-09-16.
-- MCP uses JSON-RPC 2.0 messages and exposes resources, prompts, and tools.
-  Source: https://modelcontextprotocol.io/specification/2025-06-18
-  Checked: 2026-09-16.
+- MCP `/specification/latest` currently resolves to specification version `2026-07-28`.
+  Source: https://modelcontextprotocol.io/specification/latest
+  Checked: 2026-10-09.
+- MCP specification `2026-07-28` defines the authoritative protocol requirements based on its TypeScript schema.
+  Source: https://modelcontextprotocol.io/specification/2026-07-28
+  Checked: 2026-10-09.
+- MCP uses JSON-RPC 2.0 messages; its base protocol includes stateless, self-contained requests and per-request capability negotiation.
+  Source: https://modelcontextprotocol.io/specification/2026-07-28
+  Checked: 2026-10-09.
+- MCP servers can expose resources, prompts, and tools; clients can expose roots, sampling, and elicitation.
+  Source: https://modelcontextprotocol.io/specification/2026-07-28
+  Checked: 2026-10-09.
+- MCP defines opt-in extensions such as Tasks, Skills over MCP, and MCP Apps that require explicit client and server support during initialization.
+  Source: https://modelcontextprotocol.io/specification/2026-07-28
+  Checked: 2026-10-09.
 - MCP exposes tools and capabilities to AI systems, but it is not a commerce protocol by itself.
-  Source: https://modelcontextprotocol.io/specification/2025-06-18
-  Checked: 2026-09-16.
+  Source: https://modelcontextprotocol.io/specification/2026-07-28
+  Checked: 2026-10-09.
 - A2A describes itself as an open standard for communication and collaboration between AI agents.
   Source: https://a2a-protocol.org/latest/
   Checked: 2026-09-16.
