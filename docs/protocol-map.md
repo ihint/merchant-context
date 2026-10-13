@@ -17,9 +17,9 @@ Do not claim support for a protocol until a live endpoint or file passes a test.
 | Search update notice | [IndexNow](https://www.indexnow.org/documentation) | Notifies participating search engines that URLs were added, updated, or deleted | Ranking, indexing, or proof that a submitted URL was crawled |
 | General tool access | [Model Context Protocol](https://modelcontextprotocol.io/specification/2026-07-28) | JSON-RPC protocol, stateless requests, per-request capability negotiation, resources, prompts, tools, client features, extensions, transport, and authorization patterns for AI clients | Commerce semantics or safe payment by itself |
 | Agent-to-agent calls | [Agent2Agent Protocol](https://a2a-protocol.org/latest/) | Agent discovery, agent-to-agent task delegation, message exchange, and collaboration across agent frameworks | Merchant catalog or checkout semantics by itself |
-| Cloudflare agent runtime | [Cloudflare Agents](https://developers.cloudflare.com/agents/) and [Cloudflare remote MCP](https://developers.cloudflare.com/agents/model-context-protocol/) | Hosted stateful agents, durable identity, local SQL storage, real-time connections, scheduled work, recoverable execution, browser, sandbox, AI Search, MCP tools, payments tools, x402 payment guides, MPP payment guides, and remote MCP server guidance | Merchant Context support, ACP support, UCP support, or a passing integration for this repo |
+| Cloudflare agent runtime | [Cloudflare Agents](https://developers.cloudflare.com/agents/) and [Cloudflare remote MCP](https://developers.cloudflare.com/agents/model-context-protocol/) | Hosted stateful agents, durable identity, local SQL storage, real-time connections, scheduled work, recoverable execution, browser, sandbox, AI Search, MCP tools, payments tools, x402 and MPP payment tooling, and remote MCP server guidance | Merchant Context support, ACP support, UCP support, or a passing integration for this repo |
 | Agent identity at the edge | [Cloudflare Web Bot Auth](https://developers.cloudflare.com/bots/reference/bot-verification/web-bot-auth/) | Signed HTTP messages for verified bots and agents using Cloudflare's Web Bot Auth implementation | Permission to buy, spend, bypass policy, or identify the end user |
-| Paid machine requests | HTTP 402 systems such as [x402](https://github.com/x402-foundation/x402) and [Cloudflare MPP](https://developers.cloudflare.com/agents/agentic-payments/mpp/) | Payment requirements, payment payloads, verification, settlement, schemes, facilitator APIs, discovery, authentication-header payment flows, and pay-per-request flows | Product fit, buyer consent, order recovery, or browser-native payment behavior |
+| Paid machine requests | HTTP 402 systems such as [x402](https://github.com/x402-foundation/x402) and [Cloudflare MPP](https://developers.cloudflare.com/agents/tools/payments/mpp/) | Payment requirements, payment payloads, verification, settlement, schemes, facilitator APIs, discovery, authentication-header payment flows, and pay-per-request flows | Product fit, buyer consent, order recovery, or browser-native payment behavior |
 | HTTP status semantics | [RFC 9110 section 15.5.3](https://httpwg.org/specs/rfc9110.html#status.402) and [MDN 402](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/402) | The `402 Payment Required` status code is reserved but not defined by HTTP semantics | A standard payment payload format or browser-native payment UI |
 
 ## Source checks
@@ -129,15 +129,18 @@ Checked 2026-09-16.
 - Cloudflare remote MCP docs distinguish remote MCP over Streamable HTTP with OAuth from local MCP over stdio.
   Source: https://developers.cloudflare.com/agents/model-context-protocol/
   Checked: 2026-09-16.
-- Cloudflare Agents docs include agentic payment guides for charging HTTP content, charging MCP tools, paying from Agents SDK, and Machine Payments Protocol.
-  Source: https://developers.cloudflare.com/agents/agentic-payments/
-  Checked: 2026-09-16.
+- Cloudflare Agents docs include agentic payment tooling for x402 and MPP through Cloudflare's Agents SDK.
+  Source: https://developers.cloudflare.com/agents/tools/payments/
+  Checked: 2026-10-13.
+- Cloudflare Agents docs say the Agents SDK provides `withX402` and `paidTool` for MCP servers, `x402-hono` middleware for HTTP Workers, and `withX402Client` for MCP connections with automatic `402` handling and optional human approval.
+  Source: https://developers.cloudflare.com/agents/tools/payments/
+  Checked: 2026-10-13.
 - Cloudflare's Machine Payments Protocol guide describes MPP as an open protocol for machine-to-machine payments that standardizes HTTP `402 Payment Required` with a payment authentication scheme; it says HTTP services exchange payment data in authentication headers and MCP tools use the same flow through JSON-RPC.
-  Source: https://developers.cloudflare.com/agents/agentic-payments/mpp/
-  Checked: 2026-09-16.
+  Source: https://developers.cloudflare.com/agents/tools/payments/mpp/
+  Checked: 2026-10-13.
 - Cloudflare's Machine Payments Protocol guide says MPP is payment-method agnostic, supports stablecoins, cards through Stripe, and custom payment methods, and is backwards-compatible with existing x402 services.
-  Source: https://developers.cloudflare.com/agents/agentic-payments/mpp/
-  Checked: 2026-09-16.
+  Source: https://developers.cloudflare.com/agents/tools/payments/mpp/
+  Checked: 2026-10-13.
 - Cloudflare Web Bot Auth verifies bot and agent identity with cryptographic HTTP message signatures.
   Source: https://developers.cloudflare.com/bots/reference/bot-verification/web-bot-auth/
   Checked: 2026-09-16.
