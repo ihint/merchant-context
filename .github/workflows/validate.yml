@@ -35,5 +35,6 @@ jobs:
       - run: npm test
       - run: npm run typecheck
       - run: npm run format:check
-      - run: npm audit --audit-level=high
+      # Fails on high or critical advisories not listed in audit-exceptions.json.
+      - run: npm run audit:check
       - run: npx wrangler deploy --dry-run
