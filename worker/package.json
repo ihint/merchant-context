@@ -15,23 +15,26 @@
   },
   "dependencies": {
     "@coinbase/x402": "^2.1.0",
-    "@modelcontextprotocol/sdk": "^1.30.0",
-    "@x402/core": "^2.0.0",
-    "@x402/evm": "^2.0.0",
-    "@x402/extensions": "^2.21.0",
-    "agents": "^0.20.1",
-    "viem": "^2.55.10",
-    "zod": "^4.4.3"
+    "@modelcontextprotocol/client": "2.4.0",
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "@modelcontextprotocol/server": "2.4.0",
+    "@x402/core": "^2.29.0",
+    "@x402/evm": "^2.29.0",
+    "@x402/extensions": "^2.29.0",
+    "agents": "^0.32.0",
+    "viem": "^2.57.13",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20260801.1",
-    "prettier": "^3.9.6",
+    "@cloudflare/workers-types": "^5.20261030.1",
+    "prettier": "^3.9.10",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.0",
-    "wrangler": "^4.118.0"
+    "vitest": "^4.1.12",
+    "wrangler": "^4.156.0"
   },
   "overrides": {
-    "axios": "1.18.0",
-    "undici": "7.29.0"
+    "axios": "1.21.0",
+    "undici": "7.30.1",
+    "sharp": "0.35.5"
   }
 }
