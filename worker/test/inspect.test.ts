@@ -152,19 +152,53 @@ describe("inspectMerchant", () => {
       fetcher,
     });
 
-    expect(result.summary).toEqual({ passed: 2, total: 6, score: 33 });
+    expect(result.summary).toEqual({
+      passed: 2,
+      total: 6,
+      score: 33,
+      blocked: 0,
+    });
     expect(result.checks).toEqual([
-      { id: "website", path: "/", status: "pass" },
-      { id: "robots_txt", path: "/robots.txt", status: "pass" },
-      { id: "sitemap", path: "/sitemap.xml", status: "fail" },
-      { id: "llms_txt", path: "/llms.txt", status: "fail" },
-      { id: "ucp_profile", path: "/.well-known/ucp", status: "fail" },
-      {
-        id: "merchant_context",
-        path: "/merchant-context.json",
-        status: "fail",
-      },
+      ok("website", "/"),
+      ok("robots_txt", "/robots.txt"),
+      missing("sitemap", "/sitemap.xml"),
+      missing("llms_txt", "/llms.txt"),
+      missing("ucp_profile", "/.well-known/ucp"),
+      missing("merchant_context", "/merchant-context.json"),
     ]);
+  });
+
+  it("separates a refused path from a missing one", async () => {
+    const statuses: Record<string, number> = {
+      "/": 429,
+      "/robots.txt": 403,
+      "/sitemap.xml": 401,
+      "/llms.txt": 410,
+      "/.well-known/ucp": 503,
+      "/merchant-context.json": 418,
+    };
+    const fetcher = vi.fn<typeof fetch>().mockImplementation(
+      async (request) =>
+        new Response("no", {
+          status: statuses[new URL(String(request)).pathname],
+        }),
+    );
+
+    const result = await inspectMerchant("https://merchant.example", {
+      fetcher,
+    });
+
+    expect(
+      result.checks.map(({ http_status, reason }) => [http_status, reason]),
+    ).toEqual([
+      [429, "blocked"],
+      [403, "blocked"],
+      [401, "blocked"],
+      [410, "missing"],
+      [503, "server_error"],
+      [418, "unexpected_status"],
+    ]);
+    expect(result.summary).toMatchObject({ passed: 0, blocked: 3 });
   });
 
   it("returns a redacted failure when one resource cannot be fetched", async () => {
@@ -210,7 +244,17 @@ describe("inspectMerchant", () => {
       error: "fetch_failed",
     });
     expect(JSON.stringify(result)).not.toContain("socket details");
-    expect(result.summary).toEqual({ passed: 5, total: 6, score: 83 });
+    expect(result.summary).toEqual({
+      passed: 5,
+      total: 6,
+      score: 83,
+      blocked: 0,
+    });
+    expect(result.checks[3]).toMatchObject({
+      status: "fail",
+      http_status: 0,
+      reason: "fetch_failed",
+    });
   });
 
   it("fails a malformed merchant context record even when HTTP returns 200", async () => {
@@ -325,3 +369,11 @@ describe("inspectMerchant", () => {
     expect(result.checks[4].status).toBe("fail");
   });
 });
+
+function ok(id: string, path: string) {
+  return { id, path, status: "pass", http_status: 200, reason: "ok" };
+}
+
+function missing(id: string, path: string) {
+  return { id, path, status: "fail", http_status: 404, reason: "missing" };
+}

@@ -12,6 +12,33 @@ import type { MerchantService } from "../src/service";
 describe("merchant context MCP server", () => {
   const closeCallbacks: Array<() => Promise<void>> = [];
 
+  async function connect(
+    server: ReturnType<typeof createMerchantContextServer>,
+  ): Promise<Client> {
+    const client = new Client({ name: "test-client", version: "1.0.0" });
+    const [clientTransport, serverTransport] =
+      InMemoryTransport.createLinkedPair();
+    await Promise.all([
+      server.connect(serverTransport),
+      client.connect(clientTransport),
+    ]);
+    closeCallbacks.push(
+      () => client.close(),
+      () => server.close(),
+    );
+    return client;
+  }
+
+  async function callJson(
+    client: Client,
+    name: string,
+    args: Record<string, unknown>,
+  ) {
+    const result = await client.callTool({ name, arguments: args });
+    const content = result.content as Array<{ type: string; text: string }>;
+    return JSON.parse(content[0].text);
+  }
+
   afterEach(async () => {
     await Promise.all(closeCallbacks.splice(0).map((close) => close()));
     vi.unstubAllGlobals();
@@ -48,6 +75,11 @@ describe("merchant context MCP server", () => {
       "refresh_merchant",
       "inspect_merchant",
     ]);
+    expect(result.tools[0].annotations).toMatchObject({
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+    });
     expect(result.tools[2].annotations).toMatchObject({
       readOnlyHint: true,
       openWorldHint: true,
@@ -109,7 +141,79 @@ describe("merchant context MCP server", () => {
       },
     });
     expect(payload.checks).toHaveLength(6);
+    expect(payload.checks[2]).toMatchObject({
+      http_status: 404,
+      reason: "missing",
+    });
     expect(payload).not.toHaveProperty("resources");
+    expect(payload).not.toHaveProperty("note");
+  });
+
+  it("says when a site refused the checker", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn<typeof fetch>()
+        .mockImplementation(async () => new Response("no", { status: 429 })),
+    );
+    const client = await connect(
+      createMerchantContextServer({
+        network: "base-sepolia",
+        recipient: "0x0000000000000000000000000000000000000001",
+      }),
+    );
+
+    const payload = await callJson(client, "check_merchant", {
+      merchant_url: "https://merchant.example",
+    });
+
+    expect(payload.summary).toMatchObject({ passed: 0, blocked: 6 });
+    expect(payload.note).toContain("may still exist");
+  });
+
+  it("returns compact resolutions unless full detail is requested", async () => {
+    const evidence = [
+      {
+        url: "https://merchant.example/merchant-context.json",
+        observed_at: "2026-08-11T00:00:00Z",
+        expires_at: "2026-08-12T00:00:00Z",
+        freshness: "fresh",
+      },
+    ];
+    const resolution = {
+      status: "resolved",
+      merchant: {
+        name: { state: "known", value: "Example", evidence },
+        origin: "https://merchant.example",
+      },
+      offers: [],
+      actions: [],
+      record: { stale: false },
+    };
+    const service = {
+      resolve: vi.fn().mockResolvedValue(resolution),
+    } as unknown as MerchantService;
+    const client = await connect(
+      createMerchantContextServer(
+        {
+          network: "base-sepolia",
+          recipient: "0x0000000000000000000000000000000000000001",
+        },
+        service,
+      ),
+    );
+
+    const compact = await callJson(client, "resolve_merchant", {
+      merchant_url: "https://merchant.example",
+    });
+    const full = await callJson(client, "resolve_merchant", {
+      merchant_url: "https://merchant.example",
+      detail: "full",
+    });
+
+    expect(compact.merchant.name).toEqual({ state: "known", value: "Example" });
+    expect(compact.record.evidence).toEqual(evidence);
+    expect(full).toEqual(resolution);
   });
 
   it("returns action attribution in MCP metadata", async () => {
