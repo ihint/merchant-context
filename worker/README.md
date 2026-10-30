@@ -7,6 +7,12 @@ This Worker serves a public Streamable HTTP MCP endpoint.
 - `refresh_merchant` costs $0.01 USDC through x402 on Base.
 - `inspect_merchant` is a paid compatibility alias.
 
+MCP results are compact by default: shared evidence appears once on `record.evidence`.
+Pass `detail: "full"` to repeat it on every field. The `/v1` routes always return full detail.
+
+`check_merchant` gives each path's HTTP status and a reason. `blocked` means the site refused the
+checker with 401, 403, or 429; the file may still exist for browsers.
+
 The paid tool checks a fixed set of files on one public HTTPS origin. It does not crawl arbitrary
 links or return page bodies.
 

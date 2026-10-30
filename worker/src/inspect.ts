@@ -11,6 +11,7 @@ export interface MerchantInspection {
     passed: number;
     total: number;
     score: number;
+    blocked: number;
   };
   checks: ReadinessCheck[];
 }
@@ -25,20 +26,34 @@ export interface ReadinessCheck {
     | "merchant_context";
   path: string;
   status: "pass" | "fail";
+  http_status: number;
+  reason: CheckReason;
 }
+
+// "blocked" means the site refused this checker (401, 403 or 429). The file
+// may still exist for browsers, so it is not the same as "missing".
+export type CheckReason =
+  | "ok"
+  | "blocked"
+  | "missing"
+  | "server_error"
+  | "unexpected_status"
+  | ResourceError;
+
+type ResourceError =
+  | "unsafe_redirect"
+  | "too_many_redirects"
+  | "body_too_large"
+  | "fetch_failed"
+  | "invalid_json"
+  | "invalid_schema";
 
 export interface InspectedResource {
   path: string;
   status: number;
   contentType: string | null;
   bytes: number;
-  error?:
-    | "unsafe_redirect"
-    | "too_many_redirects"
-    | "body_too_large"
-    | "fetch_failed"
-    | "invalid_json"
-    | "invalid_schema";
+  error?: ResourceError;
 }
 
 const MAX_RESPONSE_BYTES = 512 * 1024;
@@ -78,16 +93,16 @@ export async function inspectMerchant(
       }
     }),
   );
-  const checks = resources.map((resource, index): ReadinessCheck => ({
-    id: CHECK_IDS[index],
-    path: resource.path,
-    status:
-      resource.error === undefined &&
-      resource.status >= 200 &&
-      resource.status < 300
-        ? "pass"
-        : "fail",
-  }));
+  const checks = resources.map((resource, index): ReadinessCheck => {
+    const reason = checkReason(resource);
+    return {
+      id: CHECK_IDS[index],
+      path: resource.path,
+      status: reason === "ok" ? "pass" : "fail",
+      http_status: resource.status,
+      reason,
+    };
+  });
   const passed = checks.filter((check) => check.status === "pass").length;
 
   return {
@@ -98,8 +113,19 @@ export async function inspectMerchant(
       passed,
       total: checks.length,
       score: Math.round((passed / checks.length) * 100),
+      blocked: checks.filter((check) => check.reason === "blocked").length,
     },
   };
+}
+
+function checkReason(resource: InspectedResource): CheckReason {
+  if (resource.error !== undefined) return resource.error;
+  const status = resource.status;
+  if (status >= 200 && status < 300) return "ok";
+  if (status === 401 || status === 403 || status === 429) return "blocked";
+  if (status === 404 || status === 410) return "missing";
+  if (status >= 500) return "server_error";
+  return "unexpected_status";
 }
 
 async function fetchResource(

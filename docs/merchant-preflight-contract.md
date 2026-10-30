@@ -73,6 +73,26 @@ Merchant Context adoption, payment, refresh history, and referral volume do not 
 
 It shows unknown values.
 
+It lists every requested merchant under `merchants` with its status and offer count, so a merchant with no record stays visible.
+
+It compares each origin once.
+
+## Response detail
+
+MCP tools return compact results by default.
+
+Compact results list shared evidence once on `record.evidence`.
+
+A field without its own `evidence` uses `record.evidence`.
+
+A field whose evidence differs keeps its own list.
+
+Search names matching offers by `matching_offer_ids` instead of repeating them.
+
+`detail: "full"` repeats evidence on every field.
+
+The direct HTTP API always returns full detail.
+
 It does not guess or sell placement.
 
 ## Safe actions

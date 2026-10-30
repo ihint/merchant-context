@@ -3,6 +3,13 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { withX402, type FacilitatorConfig } from "agents/x402";
 import { z } from "zod";
 
+import {
+  compactComparison,
+  compactPreflight,
+  compactResolution,
+  compactSearch,
+  type Detail,
+} from "./compact";
 import { inspectMerchant } from "./inspect";
 import type { MerchantService } from "./service";
 
@@ -164,6 +171,8 @@ export function registerMerchantContextTools(
       inputSchema: {},
       annotations: {
         readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
         openWorldHint: false,
       },
     },
@@ -215,6 +224,11 @@ export function registerMerchantContextTools(
         origin: inspection.origin,
         summary: inspection.summary,
         checks: inspection.checks,
+        ...(inspection.summary.blocked > 0
+          ? {
+              note: "Blocked paths refused this checker with HTTP 401, 403 or 429. They may still exist for browsers.",
+            }
+          : {}),
         full_report: {
           tool: "refresh_merchant",
           price_usd: 0.01,
@@ -238,16 +252,19 @@ export function registerMerchantContextTools(
           .max(128)
           .optional()
           .describe("Stable, non-secret identifier for the calling client"),
+        detail: detailInput(),
       },
       annotations: freeReadAnnotations(),
     },
-    async ({ merchant_url, client_id }) =>
-      jsonToolResult(
-        await requireService(service).resolve(
-          merchant_url,
-          clientContext(client_id ?? defaultClientId),
-        ),
-      ),
+    async ({ merchant_url, client_id, detail }) => {
+      const resolution = await requireService(service).resolve(
+        merchant_url,
+        clientContext(client_id ?? defaultClientId),
+      );
+      return jsonToolResult(
+        isFull(detail) ? resolution : compactResolution(resolution),
+      );
+    },
   );
 
   server.registerTool(
@@ -274,52 +291,58 @@ export function registerMerchantContextTools(
           .max(128)
           .optional()
           .describe("Stable, non-secret identifier for the calling client"),
+        detail: detailInput(),
       },
       annotations: freeReadAnnotations(),
     },
-    async (input) =>
-      jsonToolResult(
-        await requireService(service).search(
-          clientContext(input.client_id ?? defaultClientId),
-          {
-            item_or_service: input.item_or_service,
-            geography: input.geography,
-            maximum_price:
-              input.maximum_price_amount !== undefined &&
-              input.maximum_price_currency !== undefined
-                ? {
-                    amount: input.maximum_price_amount,
-                    currency: input.maximum_price_currency,
-                  }
-                : undefined,
-            timing: input.timing,
-            policy: input.policy,
-            action_type: input.action_type,
-            freshness: input.freshness,
-            max_stale_seconds: input.max_stale_seconds,
-          },
-        ),
-      ),
+    async (input) => {
+      const results = await requireService(service).search(
+        clientContext(input.client_id ?? defaultClientId),
+        {
+          item_or_service: input.item_or_service,
+          geography: input.geography,
+          maximum_price:
+            input.maximum_price_amount !== undefined &&
+            input.maximum_price_currency !== undefined
+              ? {
+                  amount: input.maximum_price_amount,
+                  currency: input.maximum_price_currency,
+                }
+              : undefined,
+          timing: input.timing,
+          policy: input.policy,
+          action_type: input.action_type,
+          freshness: input.freshness,
+          max_stale_seconds: input.max_stale_seconds,
+        },
+      );
+      return jsonToolResult(
+        isFull(input.detail) ? results : compactSearch(results),
+      );
+    },
   );
 
   server.registerTool(
     "compare_offers",
     {
       description:
-        "Compare only sourced offer fields from two or more merchants. Unknown values stay unknown and payment never changes order.",
+        "Compare only sourced offer fields from two or more merchants. Every requested merchant is listed with its status, so unknown merchants stay visible. Payment never changes order.",
       inputSchema: {
         merchant_urls: z.array(z.string().url()).min(2).max(20),
         client_id: z.string().min(3).max(128).optional(),
+        detail: detailInput(),
       },
       annotations: freeReadAnnotations(),
     },
-    async ({ merchant_urls, client_id }) =>
-      jsonToolResult(
-        await requireService(service).compare(
-          merchant_urls,
-          clientContext(client_id ?? defaultClientId),
-        ),
-      ),
+    async ({ merchant_urls, client_id, detail }) => {
+      const comparison = await requireService(service).compare(
+        merchant_urls,
+        clientContext(client_id ?? defaultClientId),
+      );
+      return jsonToolResult(
+        isFull(detail) ? comparison : compactComparison(comparison),
+      );
+    },
   );
 
   server.registerTool(
@@ -370,35 +393,36 @@ export function registerMerchantContextTools(
           .array(z.enum(["navigate", "prepare", "submit"]))
           .optional(),
         human_confirmation_available: z.boolean().optional(),
+        detail: detailInput(),
       },
       annotations: freeReadAnnotations(),
     },
-    async ({ merchant_url, client_id, ...input }) =>
-      jsonToolResult(
-        await requireService(service).preflight(
-          merchant_url,
-          clientContext(client_id ?? defaultClientId),
-          {
-            item_or_service: input.item_or_service,
-            action_type: input.action_type,
-            geography: input.geography,
-            maximum_price:
-              input.maximum_price_amount !== undefined &&
-              input.maximum_price_currency !== undefined
-                ? {
-                    amount: input.maximum_price_amount,
-                    currency: input.maximum_price_currency,
-                  }
-                : undefined,
-            timing: input.timing,
-          },
-          {
-            max_stale_seconds: input.max_stale_seconds,
-            allowed_authority: input.allowed_authority,
-            human_confirmation_available: input.human_confirmation_available,
-          },
-        ),
-      ),
+    async ({ merchant_url, client_id, detail, ...input }) => {
+      const result = await requireService(service).preflight(
+        merchant_url,
+        clientContext(client_id ?? defaultClientId),
+        {
+          item_or_service: input.item_or_service,
+          action_type: input.action_type,
+          geography: input.geography,
+          maximum_price:
+            input.maximum_price_amount !== undefined &&
+            input.maximum_price_currency !== undefined
+              ? {
+                  amount: input.maximum_price_amount,
+                  currency: input.maximum_price_currency,
+                }
+              : undefined,
+          timing: input.timing,
+        },
+        {
+          max_stale_seconds: input.max_stale_seconds,
+          allowed_authority: input.allowed_authority,
+          human_confirmation_available: input.human_confirmation_available,
+        },
+      );
+      return jsonToolResult(isFull(detail) ? result : compactPreflight(result));
+    },
   );
 
   const paidServer = withX402(server, config);
@@ -511,6 +535,19 @@ function clientContext(clientId: string) {
 
 function actionType() {
   return z.enum(["learn_more", "contact", "request_quote", "book", "checkout"]);
+}
+
+function detailInput() {
+  return z
+    .enum(["compact", "full"])
+    .optional()
+    .describe(
+      "compact (default) lists shared evidence once on record.evidence; full repeats it on every field",
+    );
+}
+
+function isFull(detail: Detail | undefined): boolean {
+  return detail === "full";
 }
 
 function freeReadAnnotations() {
