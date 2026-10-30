@@ -1,0 +1,14 @@
+{
+  "exceptions": [
+    {
+      "advisory": "GHSA-mrhx-c7xc-m3w5",
+      "package": "zod",
+      "paths": [
+        "node_modules/@coinbase/cdp-sdk/node_modules/zod",
+        "node_modules/@coinbase/x402/node_modules/zod"
+      ],
+      "expires": "2026-12-31",
+      "reason": "No zod 3 release is patched, and @coinbase/x402 2.1.0 and @coinbase/cdp-sdk 1.60.0 still require zod 3. The worker imports only createFacilitatorConfig, which loads @coinbase/cdp-sdk/auth; that module's import graph loads axios, jose and uncrypto, never zod. Checked 2026-10-30."
+    }
+  ]
+}

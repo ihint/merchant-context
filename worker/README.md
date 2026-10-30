@@ -27,9 +27,13 @@ npm install
 npm test
 npm run typecheck
 npm run format:check
-npm audit
+npm run audit:check
 npx wrangler deploy --dry-run
 ```
+
+`audit:check` fails on any high or critical advisory except those in `audit-exceptions.json`. Each
+exception names one advisory, one package, its exact install paths, and an expiry date. An expired
+exception fails the check.
 
 ## Call the paid tool
 
