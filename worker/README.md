@@ -67,6 +67,44 @@ successful result; if that write fails, settlement does not run. After settlemen
 the receipt from the MCP result and records the public transaction hash. It does not count a verified
 signature as revenue.
 
+## Record payments in Stripe (preview only)
+
+The Worker can record each settled refresh in Stripe as a PaymentIntent. It follows
+[Stripe's x402 guide](https://docs.stripe.com/payments/machine/x402). It stays off until
+`STRIPE_SECRET_KEY` is set. Production has no such key, and this path is not proved yet.
+
+Setup for the preview Worker:
+
+1. In a Stripe sandbox, request the Stablecoins and Crypto payment method.
+2. Create a Base deposit address in that sandbox:
+
+   ```sh
+   curl https://api.stripe.com/v1/crypto/deposit_addresses \
+     -u "$STRIPE_TEST_KEY:" \
+     -H "Stripe-Version: 2026-07-29.preview" \
+     -d network=base
+   ```
+
+3. Set the preview `X402_RECIPIENT` in `wrangler.jsonc` to that address and deploy with
+   `npx wrangler deploy --env preview`.
+4. Set the key as a secret. Use a test-mode secret or restricted key that can write PaymentIntents:
+
+   ```sh
+   npx wrangler secret put STRIPE_SECRET_KEY --env preview
+   ```
+
+5. Pay one refresh from a Base Sepolia wallet. The facilitator settles it, then the Worker creates a
+   PaymentIntent in `transaction_verification` mode, keyed by the transaction hash.
+
+Rules the Worker enforces:
+
+- Base Sepolia needs a test-mode key. Base mainnet needs a live-mode key. A mismatch returns 503 on
+  the paid and MCP routes.
+- The Stripe call runs in the background after settlement. If it fails, the agent still gets its
+  paid result, and the log names the HTTP status and Stripe error code. Logs never include the key.
+- The money moves on-chain to `X402_RECIPIENT` either way. Stripe accepts the record only when that
+  address is a Stripe deposit address.
+
 ## Report settled use
 
 Run the aggregate report against the production D1 database:
