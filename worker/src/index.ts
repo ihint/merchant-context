@@ -14,6 +14,11 @@ import { createPaidInspectHandler } from "./paid-http";
 import { mcpHandlerOptions } from "./runtime-config";
 import { MerchantService } from "./service";
 import { capturePaymentToken, trackSettlementInBackground } from "./settlement";
+import {
+  stripeRecorderFromEnv,
+  withStripeRecording,
+  type StripeRecorder,
+} from "./stripe";
 
 export interface Env extends PaymentEnv {
   MerchantContextMcp: DurableObjectNamespace<MerchantContextMcp>;
@@ -21,6 +26,7 @@ export interface Env extends PaymentEnv {
   USAGE_DB?: D1Database;
   ATTRIBUTION_SIGNING_KEY?: string;
   MERCHANT_RECEIPT_SECRET?: string;
+  STRIPE_SECRET_KEY?: string;
   TRAFFIC_PROVENANCE?: "internal" | "outside";
 }
 
@@ -84,10 +90,12 @@ export default {
     if (url.pathname === "/v1/refresh" || url.pathname === "/v1/inspect") {
       let service: MerchantService;
       let paymentConfig;
+      let stripe: StripeRecorder | null;
 
       try {
         service = serviceFromEnv(env);
         paymentConfig = paymentConfigFromEnv(env);
+        stripe = stripeRecorderFromEnv(env);
       } catch {
         return serviceUnavailable();
       }
@@ -104,8 +112,11 @@ export default {
         network: paymentConfig.network,
         observePayment: (observation) =>
           recordVerifiedPayment(database, observation),
-        observeSettlement: (settlement) =>
-          recordSettlement(database, settlement),
+        observeSettlement: withStripeRecording(
+          (settlement) => recordSettlement(database, settlement),
+          stripe,
+          (promise) => context.waitUntil(promise),
+        ),
         path: url.pathname,
         recipient: paymentConfig.recipient,
       });
@@ -114,9 +125,12 @@ export default {
     }
 
     if (url.pathname.startsWith("/mcp")) {
+      let stripe: StripeRecorder | null;
+
       try {
         serviceFromEnv(env);
         paymentConfigFromEnv(env);
+        stripe = stripeRecorderFromEnv(env);
       } catch {
         return serviceUnavailable();
       }
@@ -128,7 +142,11 @@ export default {
         context,
         paymentToken,
         response,
-        (settlement) => recordSettlement(database, settlement),
+        withStripeRecording(
+          (settlement) => recordSettlement(database, settlement),
+          stripe,
+          (promise) => context.waitUntil(promise),
+        ),
       );
       return response;
     }
